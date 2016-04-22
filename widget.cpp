@@ -677,6 +677,7 @@ void Widget::ReadAnswer()
         if (str.contains("calibrationfinish",Qt::CaseInsensitive))
         {
             ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  +" Калибровка завершена, робот готов к выводу в начальную точку " );
+            ui->stackedWidget->setCurrentIndex(3);
             //         ui->tabWidget->setCurrentIndex(3);
             //         ui->labelCent->setEnabled(false);
             //         qFont = ui->labelNastr->font();
