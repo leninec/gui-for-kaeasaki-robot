@@ -146,7 +146,6 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonStopEmergency,SIGNAL(clicked()),this,SLOT(StopE()));
     connect(ui->pushButtonStartControl,SIGNAL(clicked()),this,SLOT(StartControl()));
     connect(ui->pushButtonLoadT,SIGNAL(clicked()),this,SLOT(OpenFileT()));
-    //connect(ui->pushButtonDownloadPoint,SIGNAL(clicked()),this,SLOT(DownloadPoint()));
     connect(ui->pushButtonCreateHub,SIGNAL(clicked()),this,SLOT(CreateHub()));
     connect(ui->pushButtonPass,SIGNAL(clicked()),this,SLOT(ShowService()));
     connect(ui->pushButtonHide,SIGNAL(clicked()),this,SLOT(HideTab()));
@@ -171,7 +170,6 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonZmMove_3,SIGNAL(clicked()),this,SLOT(zMmove()));
     connect(ui->pushButtonZmMove_4,SIGNAL(clicked()),this,SLOT(zMmove()));
     connect(ui->pushButtonZpMove_4,SIGNAL(clicked()),this,SLOT(zPmove()));
-
 
 
     // connect(ui->pushButtonAscan,SIGNAL(clicked()),this,SLOT(Ascan()));
@@ -270,6 +268,12 @@ Widget::Widget(QWidget *parent) :
     //  QExLabel label1 ;
     // label1.setText("Жмакни");
     // label1.setGeometry(5,5,50,10);
+
+
+    QListWidgetItem *newItem = new QListWidgetItem;
+                 newItem->setText("тест");
+                 newItem->setCheckState(Qt::Unchecked);
+                 ui->listWidget->insertItem(0, newItem);
 
 
 }
@@ -1658,6 +1662,7 @@ void Widget::WriteComment()
 
     QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
     this->encodedComment = codec->fromUnicode(comment);
+
     //  comment = win1251Codec->toUnicode(qbStr, 0x08);
     // qDebug() << str;
     //  QFont qFont;
@@ -1677,6 +1682,9 @@ void Widget::WriteComment()
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     file.write(temp); // записываем весь массив обратно в файл
     file.close();
+
+    ui->stackedWidget->setCurrentIndex(1);
+   // ui->listWidget->;
 
 }
 void Widget::StartFazus()
