@@ -51,9 +51,6 @@ int fazus::Process()    // дефектоскопим.
             // if (int  er = _sopen_s( &fh1, nameFileDef.toUtf8().data(), _O_BINARY | _O_RANDOM | _O_WRONLY | _O_TRUNC| _O_CREAT, _SH_DENYNO,_S_IWRITE))
         {
             this->bstop=false;
-            //   QString str;
-            //   str="не удалось открыть файл ";
-            //    str = str+QString::number(er);
             emit error("Не удалось открыть файл");
         }
     }

@@ -5,6 +5,7 @@
 
 #include "fazus.h"
 #include "UdpClient.h"
+#include <QListWidgetItem>
 
 
 
@@ -103,9 +104,11 @@ private slots:
 
 
 
-    void on_tabWidget_currentChanged(int index);
+   // void on_tabWidget_currentChanged(int index);
 
     int on_listWidget_currentRowChanged(int currentRow);
+
+    void on_stackedWidget_currentChanged(int arg1);
 
 private:
     bool bReadyControl;
@@ -123,6 +126,17 @@ private:
     fazus       *pF;
     UdpClient  *udpClient;
     rs10nComand rComand;
+
+    QListWidgetItem  *ItemTitle;
+    QListWidgetItem *ItemReg;
+    QListWidgetItem *ItemTraect;
+    QListWidgetItem *ItemOrient;
+    QListWidgetItem *ItemNastrUzk;
+    QListWidgetItem *ItemStartPoint;
+    QListWidgetItem *ItemControl;
+    QListWidgetItem *ItemVspomag;
+    QListWidgetItem *ItemManualMove;
+    QListWidgetItem *ItemService;
 
     Ui::Widget *ui;
     int i_flag_button[12];

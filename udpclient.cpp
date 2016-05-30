@@ -8,7 +8,6 @@ UdpClient::UdpClient(QObject *parent) : QObject(parent)
 
     this->socket->bind(this->qha.AnyIPv4, PORTADDR);
 
-
     //this->socket->bind(this->qha.AnyIPv4, PORTADDR);
     this->timer = new QTimer(this);
     this->timer->setInterval(8000); // таймер для проверки состояния робота во время контроля если нет пакетов 2 секунды - посмотреть не выключился ли робот
@@ -1298,27 +1297,27 @@ int UdpClient::DownloadPoint()
 int UdpClient::Calibration(int napr)
 {
     // по напру калибруемся или изнутри втулки или снаружи - пока не работает
-//    float xTmp = 0;
-//    float yTmp = 0;
-//    float zTmp = 0;
-//    float oTmp = 0;
-//    float aTmp = 0;
-//    float tTmp = 0;
-//    float  fycoord1 = 0;
-//    float  fycoord2 = 0;
-//    float  fxcoord1 = 0;
-//    float  fxcoord2 = 0;
-//    int increase = 0;
-//    float stepNastr = (float)0.7;
-//    int ampLow = 55;
-//    int ampMax = 207;
-//    int znak = 1;
-//    int itimeX1 = 0;
-//    int itimeX2 = 0;
-//    int itimeY1 = 0;
-//    int itimeY2 = 0;
-//    int countZnak = 0; // накопитель для определения направления движения
-//    float fZmax = 100;
+    float xTmp = 0;
+    float yTmp = 0;
+    float zTmp = 0;
+    float oTmp = 0;
+    float aTmp = 0;
+    float tTmp = 0;
+    float  fycoord1 = 0;
+    float  fycoord2 = 0;
+    float  fxcoord1 = 0;
+    float  fxcoord2 = 0;
+    int increase = 0;
+    float stepNastr = (float)0.7;
+    int ampLow = 55;
+    int ampMax = 207;
+    int znak = 1;
+    int itimeX1 = 0;
+    int itimeX2 = 0;
+    int itimeY1 = 0;
+    int itimeY2 = 0;
+    int countZnak = 0; // накопитель для определения направления движения
+    float fZmax = 100;
 
     QString nameFolder =  ".\\system-nastr\\exo1-1-";
     QString nameNastr;
@@ -1351,7 +1350,7 @@ int UdpClient::Calibration(int napr)
         emit error(" Не выбран файл траектори");
         return 1;
     }
-    /*
+
     //if (this->DeletePoint()) return 1; // в ориентации фланца и так стираем точки
     int begin = 0;
     int end = 0;
@@ -1919,7 +1918,7 @@ int UdpClient::Calibration(int napr)
     if (this->WaitingMoveFinish()) return 1;
     this->DeletePoint();
     this->pFazus->Stop_fazus();
-*/
+/**/
     // закончили калибровку и теперь на роботе сохраняем точку чтобы не потерять результат калибровки
     Data.clear();
     Data.append("64;");

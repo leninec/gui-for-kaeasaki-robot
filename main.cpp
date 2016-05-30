@@ -7,6 +7,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);   
     Widget w;
 
+
     w.setWindowTitle("Управление роботом RS10N");
     //QDesktopWidget d;
 
