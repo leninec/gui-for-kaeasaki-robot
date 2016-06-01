@@ -14,11 +14,30 @@ Widget::Widget(QWidget *parent) :
     ui(new Ui::Widget)
 {
     this->processMaxim = new QProcess();
+    if (QFile::exists(".\\PipeDefMultiWin.exe"))
+    {
+
     // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
     this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
+    }
+else
+    {
+        QMessageBox msgBoxW;
+        msgBoxW.setText("Программа просмотра отсутвует или имеет неверное имя");
+        msgBoxW.exec();
+    }
     this->processFazus = new QProcess();
+    if (QFile::exists(".\\VORON1.exe"))
+    {
     //  this->processFazus->setProgram("E:\\FAZUS_DLL\\fazus-N\\VORON1.exe");
     this->processFazus->setProgram(".\\VORON1.exe");
+    }
+    else
+    {
+        QMessageBox msgBoxW;
+        msgBoxW.setText("Программа настройки УЗК отсутвует или имеет неверное имя");
+        msgBoxW.exec();
+    }
     ui->setupUi(this);
     // QWidget::setFixedSize(938,520);
 
@@ -89,10 +108,9 @@ Widget::Widget(QWidget *parent) :
 
     ui->pushButtonStopEmergency->setToolTip(" Останавливает программу робота (лампа RUN/HOLD).");
     ui->pushButtonContinue->setToolTip(" Возобновление программы робота (лампа RUN/HOLD).");
-    //  ui->tabWidget->setCurrentIndex(0);
+    // ui->tabWidget->setCurrentIndex(0);
     // ui->tab_6->setEnabled(false);
     // ui->tab_5->setEnabled(false); // при старте глюк номер минус один
-
 
     // ui->gridLayout->setEnabled(false);
 
@@ -306,7 +324,6 @@ Widget::Widget(QWidget *parent) :
     this->ItemControl->setToolTip(" После нажатия на кнопку Старт контроля робот начнет движение по заданной траектории.");
     this->ItemManualMove->setToolTip(" Перемещение манипулятора в декартовых или угловых( по суставно) координатах.");
     this->ItemService->setToolTip(" Служебные настройки.");
-
 }
 int Widget::GetNastr()
 {
