@@ -43,7 +43,7 @@ public slots:
     void OneShot1();
     void Ascan();
     void AscanStop();
-    void OpenFileT();
+    void OpenFileT(QString name = "0");
     void HereShift();
     void Here();
     void ClearStep();
@@ -96,6 +96,8 @@ public slots:
     void SetSpinX(double);
     void SetSpinY(double);
     void SetSpinZ(double);
+
+    void NextPageButton();
 
     //    void OneShot();
 

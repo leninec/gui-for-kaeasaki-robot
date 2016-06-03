@@ -17,10 +17,10 @@ Widget::Widget(QWidget *parent) :
     if (QFile::exists(".\\PipeDefMultiWin.exe"))
     {
 
-    // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
-    this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
+        // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
+        this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
     }
-else
+    else
     {
         QMessageBox msgBoxW;
         msgBoxW.setText("Программа просмотра отсутвует или имеет неверное имя");
@@ -29,8 +29,8 @@ else
     this->processFazus = new QProcess();
     if (QFile::exists(".\\VORON1.exe"))
     {
-    //  this->processFazus->setProgram("E:\\FAZUS_DLL\\fazus-N\\VORON1.exe");
-    this->processFazus->setProgram(".\\VORON1.exe");
+        //  this->processFazus->setProgram("E:\\FAZUS_DLL\\fazus-N\\VORON1.exe");
+        this->processFazus->setProgram(".\\VORON1.exe");
     }
     else
     {
@@ -154,7 +154,7 @@ else
     connect(ui->pushButtonContinue,SIGNAL(clicked()),this,SLOT(Continue()));
     connect(ui->pushButtonStopEmergency,SIGNAL(clicked()),this,SLOT(StopE()));
     connect(ui->pushButtonStartControl,SIGNAL(clicked()),this,SLOT(StartControl()));
-    connect(ui->pushButtonLoadT,SIGNAL(clicked()),this,SLOT(OpenFileT()));
+    connect(ui->pushButtonLoadT,SIGNAL(clicked()),this,SLOT(OpenFileT())); // пустое имя чтобы выбрать нужное из диалога
     connect(ui->pushButtonCreateHub,SIGNAL(clicked()),this,SLOT(CreateHub()));
     connect(ui->pushButtonPass,SIGNAL(clicked()),this,SLOT(ShowService()));
     connect(ui->pushButtonHide,SIGNAL(clicked()),this,SLOT(HideTab()));
@@ -227,6 +227,7 @@ else
     connect(ui->SpinBoxZmove_3,SIGNAL(valueChanged(double)),this,SLOT(SetSpinZ(double)));
     connect(ui->SpinBoxZmove_4,SIGNAL(valueChanged(double)),this,SLOT(SetSpinZ(double)));
 
+    connect(ui->pushButtonUzkOk,SIGNAL(clicked()),this,SLOT(NextPageButton()));
     this->threadUDP->start();
 
     this->nameFolder =  QCoreApplication::applicationDirPath();
@@ -339,7 +340,7 @@ int Widget::GetNastr()
     if (fileName != "")
     {
         int er = this->fazusD->one_shot(fileName);
-        if (er>256)  // если все хорошо функция возвращает число от 0 -255
+        if (er>256)  // если все хорошо функция возвращает число от 0 до 255
         {
             data = QDateTime::currentDateTime();
             ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"] "  + "Нет связи с фазусом");
@@ -643,12 +644,9 @@ void Widget::ReadAnswer()
         }
         if (str.contains("startposithion",Qt::CaseInsensitive))
         {
-
             this->bMassivButton[bstart]= true;
             this->bMassivButton[bstop]= true;
             this->SetButtonControl();
-
-            //         ui->pushButtonHereShift->setEnabled(false);
 
             ui->pushButtonJ1P->setEnabled(true);
             ui->pushButtonJ1M->setEnabled(true);
@@ -686,7 +684,7 @@ void Widget::ReadAnswer()
             //      qFont = ui->labelControl->font();
             qFont.setBold(true);
             ///       ui->labelControl->setFont(qFont);
-            // при повторном контроле не грузим точке - следовательно не попадаем сюда
+            // при повторном контроле не грузим точки - следовательно не попадаем сюда
             //  this->fazusD->SetFileNameNastr(this->fileNameNastr);
             //  this->fazusD->Nastr(this->fileNameNastr);
             //  this->udpClient->GetPointer(*(this->fazusD));
@@ -749,7 +747,6 @@ void Widget::ReadAnswer()
             this->bMassivButton[bcalibrovka]= false;
             this->bMassivButton[bhereshift]= true;
             this->SetButtonControl();
-
 
             ui->pushButtonJ1P->setEnabled(false);
             ui->pushButtonJ1M->setEnabled(false);
@@ -832,19 +829,16 @@ void Widget::ReadAnswer()
         }
         if ((str.contains("movestart",Qt::CaseInsensitive))&&(this->udpClient->Get_bDef()))
         {
-            //  ui->plainTextEdit->appendPlainText("Контроль ");
             if (!(this->fazusD->Get_bStatDef()))  // дополнительная проверка флага снятия данных
             {                                 //чтобы не запустить поток повторно по запоздавшему пакету от робота
                 this->fazusD->StartDef(); // раньше дергали переменную напрямую
                 if (this->threadF->isRunning())
                 {
                     emit processStart();
-                    // ui->plainTextEdit->appendPlainText("Начат контроль");
                 }
                 else
                 {
                     this->threadF->start(); // запуск поток сьема данных
-                    //  ui->plainTextEdit->appendPlainText("Начат контроль");
                 }
 
                 ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  + " Старт контроля " );
@@ -1412,13 +1406,16 @@ void Widget::AscanStop()
     ui->plainTextEdit->appendPlainText("Контроль закончен");
     */
 }
-void Widget::OpenFileT()
+void Widget::OpenFileT(QString fileName)
 {
     data = QDateTime::currentDateTime();
-    QString nameFoldertrace = ".\\traectori";
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
+    if (fileName == "0")
+    {
+        QString nameFoldertrace = ".\\traectori";
+        fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
                                                     tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
 
+    }
     if (fileName != "")
     {
         rs10nComand comand;
@@ -1591,6 +1588,22 @@ void Widget::CreateHub()
     name = name.prepend(".\\traectori\\");
     this->writeTrace(name.toUtf8().data(),ui->spinBoxOutD->value(),ui->spinBoxInD->value(),ui->spinBoxHight->value(),ui->doubleSpinBoxStepT->value());
     ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"] Файл траектории " + name + " создан " );
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(" Создание траектории движения");
+    //msgBox.setText("Траектория " + name +"создана. Выбрать ее для дальнейшей работы?");
+    msgBox.setInformativeText("Траектория " + name +"  создана. Выбрать ее для дальнейшей работы?");
+    msgBox.setIcon(QMessageBox::Question);
+    QPushButton *yes = msgBox.addButton(tr("Да, выбрать эту траекторию"), QMessageBox::ActionRole);
+    QPushButton *no = msgBox.addButton(tr("Нет(необоходимо создать или загрузить новую траекторию"), QMessageBox::ActionRole);
+    msgBox.exec();
+    if(msgBox.clickedButton()== yes)
+    {
+        this->OpenFileT(name);
+    }
+    else if(msgBox.clickedButton()== no)
+    {
+
+    }
 }
 
 void Widget::writeTrace(const char *chFileName, 		// Название файла
@@ -2270,23 +2283,9 @@ int Widget::on_listWidget_currentRowChanged(int currentRow)
     return 0;
 }
 
-Widget::~Widget()
+void Widget::NextPageButton()
 {
-    //  this->processMaxim->kill();
-    //this->processFazus->kill();
-    this->processMaxim->close();
-    this->processFazus->close();
-    this->processFazus->waitForFinished(500);
-    this->processMaxim->waitForFinished(500);
-
-    this->udpClient->Stop();
-    this->threadUDP->quit();
-    this->threadUDP->wait(500); // ;ждем заверщение потока
-    this->threadUDP->terminate();
-    this->threadF->quit();
-    this->threadF->wait(500);
-    this->threadF->terminate();
-    delete ui;
+  ui->stackedWidget->setCurrentIndex(1+ ui->stackedWidget->currentIndex());
 }
 
 
@@ -2318,4 +2317,22 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     default:
         break;
     }
+}
+Widget::~Widget()
+{
+    //  this->processMaxim->kill();
+    //this->processFazus->kill();
+    this->processMaxim->close();
+    this->processFazus->close();
+    this->processFazus->waitForFinished(500);
+    this->processMaxim->waitForFinished(500);
+
+    this->udpClient->Stop();
+    this->threadUDP->quit();
+    this->threadUDP->wait(500); // ;ждем заверщение потока
+    this->threadUDP->terminate();
+    this->threadF->quit();
+    this->threadF->wait(500);
+    this->threadF->terminate();
+    delete ui;
 }

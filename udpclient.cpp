@@ -445,7 +445,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr1)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,5000,1);
+                    this->SendCommand(Data,5000*abs(comand.parametr1),1); //добавим чтобы время ожидания зависело от величины на которую нужно сместиться
                 }
                 if(comand.parametr2)
                 {
@@ -454,7 +454,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr2)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,"movefinish","Ошибка перемещения J2",1,5000,1);
+                    this->SendCommand(Data,"movefinish","Ошибка перемещения J2",1,5000*abs(comand.parametr2),1);
                 }
                 if(comand.parametr3)
                 {
@@ -463,7 +463,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr3)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,"movefinish","Ошибка перемещения J3",1,5000,1);
+                    this->SendCommand(Data,"movefinish","Ошибка перемещения J3",1,5000*abs(comand.parametr3),1);
                 }
                 if(comand.parametr4)
                 {
@@ -472,7 +472,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr4)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,"movefinish","Ошибка перемещения J4",1,5000,1);
+                    this->SendCommand(Data,"movefinish","Ошибка перемещения J4",1,5000*abs(comand.parametr4),1);
                 }
                 if(comand.parametr5)
                 {
@@ -481,7 +481,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr5)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,"movefinish","Ошибка перемещения J5",1,5000,1);
+                    this->SendCommand(Data,"movefinish","Ошибка перемещения J5",1,5000*abs(comand.parametr5),1);
                 }
                 if(comand.parametr6)
                 {
@@ -490,7 +490,7 @@ int UdpClient::Process()
                     stroka=stroka+QString::number(comand.parametr6)+";";
                     Data.clear();
                     Data.append(stroka);
-                    this->SendCommand(Data,5000,1);
+                    this->SendCommand(Data,abs(5000*abs(comand.parametr6)),1);
                 }
                 break;
             case openPipe:
@@ -502,7 +502,6 @@ int UdpClient::Process()
                 break;
             }
         }
-
     }
     emit finished();
     return 0;
@@ -1082,7 +1081,7 @@ int UdpClient::OpenFileT(QString nameFile)
 }
 int UdpClient::HereShift() // функция, берущая текущую координату и сдвигающая на нее массив точек
 {
-    /*  this->DeletePoint();
+      this->DeletePoint();
     if (this->qbaTrajectory.count() == 0)
     {                      // если траектория не загружена сдвигать нечего
         emit error("Не открыт файл с траекторий.");
@@ -1141,7 +1140,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     Data.append(stroka);// запихиваем в пакет матрицу смещения
 
     if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
-*/
+
     QByteArray qbM;
     qbM.append("start posithion");
     this->vPpriemMessage.append(qbM);
@@ -1932,15 +1931,30 @@ int UdpClient::Calibration(int napr)
 }
 int UdpClient::Orientation180(int del)
 {
+    QByteArray Data;
     if (this->DeletePoint()) return 1; //можно угробить уже залитую траекторию
     if (this->DeleteShift()) return 1;
+    /* координаты в блокнотовских файлах мы формируем относительно 0. Если такую координату
+     залить в робота без смещения то робот попытается уехать себе в основание и сотановиться с ошибкой
+     чтобы избежать этого изначально в роботе заданно смещение -1000 по z
+     следовательно перед ориентацией фланца возьмем текущее смещение
+     зададим 0 а после ориентации вернем обратно
+     */
+    this->Sdvig(); // метод должен записать координаты смещения в глобальные переменные
+    QString stroka;
+    stroka="4;0;0;0;0;0;0";
+    Data.clear();
+    Data.append(stroka);// запихиваем в пакет матрицу смещения
+
+    if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
+
     float xTmp = 0;
     float yTmp = 0;
     float zTmp = 0;
     float oTmp = 0;
     float aTmp = 0;
     float tTmp = 0;
-    QByteArray Data;
+
 
     this->Here();
     int i = this->vPpriemMessage.size();
@@ -1980,6 +1994,16 @@ int UdpClient::Orientation180(int del)
     Data.clear();
     Data.append("orientationfinish");
     this->vPpriemMessage.append(Data);
+
+    //теперь вернем смещение обратно
+    stroka.clear();
+    stroka= "4;" + QString::number(this->fXShift)+QString::number(this->fYShift)+QString::number(this->fZShift);
+    stroka = stroka +QString::number(this->fOShift)+QString::number(this->fAShift)+QString::number(this->fTShift);
+    Data.clear();
+    Data.append(stroka);// запихиваем в пакет матрицу смещения
+
+    if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
+
     emit answer();
     return 0;
 }
