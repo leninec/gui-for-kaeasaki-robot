@@ -578,7 +578,7 @@ int UdpClient::ReadData()
     }
     buffer.resize(socket->pendingDatagramSize());
     socket->readDatagram(buffer.data(), buffer.size(),
-                             &(this->qha));//, &senderPort);
+                         &(this->qha));//, &senderPort);
 
     //qDebug("2");
     if (buffer.indexOf("move point") != -1)
@@ -623,7 +623,13 @@ int UdpClient::ReadData()
     buffer.clear();
     return 0;
 }
-int UdpClient::SendCommand(QByteArray baCommand, QString sAnswer, QString sError, int par, int timeout, int nSend)
+int UdpClient::SendCommand(
+        QByteArray baCommand,
+        QString sAnswer,
+        QString sError,
+        int par,                //0 - delete message, 1 - only read message
+        int timeout,
+        int nSend)
 {
     if (this->SendData(baCommand,timeout,nSend)) // не было ответа в течении таймаута - прекращем функцию
     {
@@ -635,7 +641,7 @@ int UdpClient::SendCommand(QByteArray baCommand, QString sAnswer, QString sError
         //emit error("Ошибка чтения ответа, ждем " + sAnswer);
         return 1;  /// бляяя если все не работает смотреть тут!
     }
-    if(int i=this->vPpriemMessage.size())
+    if(int i = this->vPpriemMessage.size())
     {
         QString str(this->vPpriemMessage[i-1]);
         str.replace(" ", "");
@@ -1081,7 +1087,7 @@ int UdpClient::OpenFileT(QString nameFile)
 }
 int UdpClient::HereShift() // функция, берущая текущую координату и сдвигающая на нее массив точек
 {
-      this->DeletePoint();
+    this->DeletePoint();
     if (this->qbaTrajectory.count() == 0)
     {                      // если траектория не загружена сдвигать нечего
         emit error("Не открыт файл с траекторий.");
@@ -1250,7 +1256,7 @@ int UdpClient::DeletePoint()
 }
 int UdpClient::DownloadPoint()
 {
-    /*  this->DeletePoint(); //при стирании точек удаляеться теперь не удаляется матрица смещения
+    this->DeletePoint(); //при стирании точек удаляеться теперь не удаляется матрица смещения
     int j = 0;
     int count = 0;            // Количество строчек в файле
     int count2 = 0;           // Индекс символа начала строки
@@ -1286,7 +1292,7 @@ int UdpClient::DownloadPoint()
         count++;
         count2=j;
     }
-*/
+
     QByteArray qbM;
     qbM.append("finisheddownload");
     this->vPpriemMessage.append(qbM);
@@ -1917,7 +1923,7 @@ int UdpClient::Calibration(int napr)
     if (this->WaitingMoveFinish()) return 1;
     this->DeletePoint();
     this->pFazus->Stop_fazus();
-/**/
+    /**/
     // закончили калибровку и теперь на роботе сохраняем точку чтобы не потерять результат калибровки
     Data.clear();
     Data.append("64;");
@@ -1933,7 +1939,7 @@ int UdpClient::Orientation180(int del)
 {
     QByteArray Data;
     if (this->DeletePoint()) return 1; //можно угробить уже залитую траекторию
-    if (this->DeleteShift()) return 1;
+    //  if (this->DeleteShift()) return 1;
     /* координаты в блокнотовских файлах мы формируем относительно 0. Если такую координату
      залить в робота без смещения то робот попытается уехать себе в основание и сотановиться с ошибкой
      чтобы избежать этого изначально в роботе заданно смещение -1000 по z
@@ -1942,11 +1948,10 @@ int UdpClient::Orientation180(int del)
      */
     this->Sdvig(); // метод должен записать координаты смещения в глобальные переменные
     QString stroka;
-    stroka="4;0;0;0;0;0;0";
+    stroka = "4;0;0;0;0;0;0;";
     Data.clear();
     Data.append(stroka);// запихиваем в пакет матрицу смещения
-
-    if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
+    if( this->SendCommand(Data,"shift","Ошибка задания смещения для ориентации фланца 1",0)) return 1;
 
     float xTmp = 0;
     float yTmp = 0;
@@ -1975,6 +1980,10 @@ int UdpClient::Orientation180(int del)
         return 1;
         //не то
     }
+
+    this->vPpriemMessage.clear();
+  //  i = this->vPpriemMessage.size();
+//    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
     QStringList strList = str.split(';');
     xTmp = strList[0].toFloat();
     yTmp = strList[1].toFloat();
@@ -1985,10 +1994,24 @@ int UdpClient::Orientation180(int del)
 
     Data.clear();
     Data.append("1;" + QString::number(xTmp) + ";" + QString::number(yTmp)+";" + QString::number(zTmp) + ";"+QString::number(oTmp)+";" + QString::number(aTmp)+";" + QString::number(tTmp)+";");
-    this->SendCommand(Data,"point","Ошибка создания новой точки",1);
+   // this->SendCommand(Data);
+     if (this->SendCommand(Data,"point","Ошибка создания новой точки",0)) return 1;
+    /*
+     при создании точки робот вышлет лишнее собщение об отсувии калибровки
+     потом второй ответ о успешном создании точки
+     */
+
+
+    // Data.append("3;");  // получить заданную точку
+    // if (this->SendCommand(Data,"num","Ошибка создания точки, ориентация фланца",1)) return 1;
+
+  //  this->ReadData();
+  //  this->ReadData();
+  //  this->vPpriemMessage.clear();
     Data.clear();
     Data.append("16;"); // команда поехать
     if (this->SendCommand(Data,"movestart","Ошибка ориентации фланца, движение",1)) return 1;
+   // this->SendCommand(Data);
 
     if (this->WaitingMoveFinish()) return 1;
     Data.clear();
@@ -1997,17 +2020,16 @@ int UdpClient::Orientation180(int del)
 
     //теперь вернем смещение обратно
     stroka.clear();
-    stroka= "4;" + QString::number(this->fXShift)+QString::number(this->fYShift)+QString::number(this->fZShift);
-    stroka = stroka +QString::number(this->fOShift)+QString::number(this->fAShift)+QString::number(this->fTShift);
+    stroka= "4;" + QString::number(this->fXShift)+";"+QString::number(this->fYShift)+";"+QString::number(this->fZShift)+";";
+    stroka = stroka +QString::number(this->fOShift)+";"+QString::number(this->fAShift)+";"+QString::number(this->fTShift)+";";
     Data.clear();
     Data.append(stroka);// запихиваем в пакет матрицу смещения
 
-    if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
+    if( this->SendCommand(Data,"shift","Ошибка задания смещения после ориентации фланца",0)) return 1;
 
     emit answer();
     return 0;
 }
-
 int UdpClient::DeleteFileDef(QString name)
 {
     int er;
@@ -2031,7 +2053,6 @@ int UdpClient::DeleteFileDef(QString name)
     }
     return er;
 }
-
 QString UdpClient::SearhIncreace(QString Nastr, int ampLow, int ampMax)
 { // функции надо передовать неполное имя без усиления и разрешения
     QString nameNastr;
@@ -2264,7 +2285,6 @@ int UdpClient::GetWorkSpace(float *x1,float *y1,float *z1,float *x2,float *y2,fl
     }
     return er;
 }
-
 int UdpClient::WaitingMoveFinish()
 {
     if ((this->socket->pendingDatagramSize())==-1)
@@ -2314,7 +2334,7 @@ int UdpClient::WaitingMoveFinish()
     if (!(str.contains("move finish",Qt::CaseInsensitive)))
     {
         this->pFazus->Stop_fazus();
-        emit error("Не то прочитал из вектора сообщений, ждем move finish" + str);
+        emit error("Не то прочитал из вектора сообщений, ждем move finish " + str);
         return 1;//не то
     }
 
@@ -2656,7 +2676,6 @@ int UdpClient::ChangeMoveMode(int mode)
     this->SendCommand(Data,"setmode", " Ошибка переключения режима движения",1);
     return 0;
 }
-
 int UdpClient::Move2step(float step,int napr)
 {
     QByteArray Data;
@@ -2677,8 +2696,6 @@ int UdpClient::Move2degree(float degree,int napr)
     this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
     return 0;
 }
-
-
 UdpClient::~UdpClient()
 {
     // this->brun = false;   // всеравно завершаеться неверно
