@@ -53,6 +53,8 @@ public:
     bool Get_bStatusSliv(){return this->bStatSliv;}
     bool Get_bDef(){return this->bDef;}
 
+    float Get_OinstrShift(){return this->fOinstrShift;};
+
 
 signals:
     void finished();
@@ -96,6 +98,8 @@ private:
     float fOShift;
     float fAShift;
     float fTShift;
+
+    float fOinstrShift; // на макетном образце рамка с датчиками расположена под другими углом - нужно смещние
 
     float fWZx1,fWZx2,fWZy1,fWZy2,fWZz1,fWZz2;
 

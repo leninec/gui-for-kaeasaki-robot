@@ -722,6 +722,7 @@ void Widget::ReadAnswer()
             this->bMassivButton[bpump]= true;
             this->bMassivButton[bsliv]= true;
             this->SetButtonControl();
+            // здесь было бы неплохо закрыть кнопки ручного перемещения
 
             ui->pushButtonXpMove_2->setEnabled(true);
             ui->pushButtonXmMove_2->setEnabled(true);
@@ -1583,7 +1584,8 @@ void Widget::CreateHub()
         QDir().mkdir(".\\traectori\\");
     }
     data = QDateTime::currentDateTime();
-    QString name ="vtulka-" ;
+    //QString name ="vtulka-" ;
+    QString name ="vtulka-oShift-" ;
     name = name + QString::number(ui->spinBoxOutD->value()) + "-" + QString::number(ui->spinBoxInD->value()) + "-" + QString::number(ui->spinBoxHight->value()) + "-" +QString::number(ui->doubleSpinBoxStepT->value())+".txt";
     name = name.prepend(".\\traectori\\");
     this->writeTrace(name.toUtf8().data(),ui->spinBoxOutD->value(),ui->spinBoxInD->value(),ui->spinBoxHight->value(),ui->doubleSpinBoxStepT->value());
@@ -1619,13 +1621,16 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
             fh;									// Хэндлер файла
     unsigned int i = 0;							// Счетчик
     _sopen_s(&fh, chFileName, _O_RDWR | _O_TRUNC | _O_CREAT, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+    //внесем изменение - сдвиг по углу O  чтобы компенсировать установку фланца
+    float oShift = this->udpClient->Get_OinstrShift();
     for(i = 0; i < (d_H*M_PI/(stepscan))*1.03; i++)  // домножили для перекрытия
     {
         sprintf_s(list, sizeof(list), "1;%5.3f;%5.3f;%5.3f;%5.3f;%5.3f;%5.3f;\n",
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   0.0,
-                  istepangl*360/(d_H*M_PI/(stepscan)),
+                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  //istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1633,7 +1638,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   H,
-                  istepangl*360/(d_H*M_PI/(stepscan)),
+                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  //istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1643,7 +1649,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   H,
-                  istepangl*360/(d_H*M_PI/(stepscan)),
+                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  //istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1651,7 +1658,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   0.0,
-                  istepangl*360/(d_H*M_PI/(stepscan)),
+                  oShift +  istepangl*360/(d_H*M_PI/(stepscan)),
+                  //istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1661,7 +1669,7 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
               r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
               r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
               0.0,
-              istepangl*360/(d_H*M_PI/(stepscan)),
+              oShift + istepangl*360/(d_H*M_PI/(stepscan)),
               180.0,
               0.0);
     _write(fh, list, strlen(list));

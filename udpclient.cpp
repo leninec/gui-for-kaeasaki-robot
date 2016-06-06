@@ -29,6 +29,7 @@ UdpClient::UdpClient(QObject *parent) : QObject(parent)
     this->fStepAngle = 0;
     this->rHub = 0;
     this->pFazus = NULL;
+    this->fOinstrShift = 0;
     //    this->bSdvig = false;
     connect(this->timer,SIGNAL(timeout()),this,SLOT(EventTimer()), Qt::DirectConnection );
     //QEventLoop loop;
@@ -1256,7 +1257,7 @@ int UdpClient::DeletePoint()
 }
 int UdpClient::DownloadPoint()
 {
-    this->DeletePoint(); //при стирании точек удаляеться теперь не удаляется матрица смещения
+    this->DeletePoint(); //при стирании точек  теперь не удаляется матрица смещения
     int j = 0;
     int count = 0;            // Количество строчек в файле
     int count2 = 0;           // Индекс символа начала строки
@@ -1988,7 +1989,7 @@ int UdpClient::Orientation180(int del)
     xTmp = strList[0].toFloat();
     yTmp = strList[1].toFloat();
     zTmp = strList[2].toFloat();
-    oTmp = 0;
+    oTmp = 0 + this->fOinstrShift;   // добавили сдвиг так как другой фланец
     aTmp = 180;
     tTmp = 0;
 
@@ -1998,16 +1999,9 @@ int UdpClient::Orientation180(int del)
      if (this->SendCommand(Data,"point","Ошибка создания новой точки",0)) return 1;
     /*
      при создании точки робот вышлет лишнее собщение об отсувии калибровки
-     потом второй ответ о успешном создании точки
+     информация об отсувии смещения добавлено внутрь собщение, в ответ одно сообщение теперь
      */
 
-
-    // Data.append("3;");  // получить заданную точку
-    // if (this->SendCommand(Data,"num","Ошибка создания точки, ориентация фланца",1)) return 1;
-
-  //  this->ReadData();
-  //  this->ReadData();
-  //  this->vPpriemMessage.clear();
     Data.clear();
     Data.append("16;"); // команда поехать
     if (this->SendCommand(Data,"movestart","Ошибка ориентации фланца, движение",1)) return 1;
@@ -2289,7 +2283,7 @@ int UdpClient::WaitingMoveFinish()
 {
     if ((this->socket->pendingDatagramSize())==-1)
     {
-        if (!(this->socket->waitForReadyRead(20000)))  // ждем move finish
+        if (!(this->socket->waitForReadyRead(40000)))  // ждем move finish
         {
             this->pFazus->Stop_fazus();
             emit error("Не дождались сигнала завершения движения");
