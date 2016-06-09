@@ -101,13 +101,15 @@ private:
 
     float fOinstrShift; // на макетном образце рамка с датчиками расположена под другими углом - нужно смещние
 
-    float fWZx1,fWZx2,fWZy1,fWZy2,fWZz1,fWZz2;
+    float fWZx1,fWZx2,fWZy1,fWZy2,fWZz1,fWZz2;  // для хранения информации о границах перемещения
 
     int iSpeed;
     int iNumPoint;
     int iCurrentPoint;
     int iMaxZ;
     int iMesh;
+    int flagCircle;   // создаем флаг для контроля перемещения по дуге. Как только мы изменили высоту по Z
+                       // сразу  сбрасываем этот флаг и при движении по дуге созадем таректорию заново
     float fStepAngle;
     float rHub;
     bool bDef;  // флаг контроль идет
@@ -143,6 +145,7 @@ private:
     int HereShift();
     int Here();
     int Here(float *x,float *y,float *z);
+    int Here(float *x,float *y,float *z,float *o,float *a,float *t);
     int TestHere();
     int ClearStep();
     int DeletePoint();

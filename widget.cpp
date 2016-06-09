@@ -16,7 +16,6 @@ Widget::Widget(QWidget *parent) :
     this->processMaxim = new QProcess();
     if (QFile::exists(".\\PipeDefMultiWin.exe"))
     {
-
         // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
         this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
     }
@@ -39,7 +38,7 @@ Widget::Widget(QWidget *parent) :
         msgBoxW.exec();
     }
     ui->setupUi(this);
-    // QWidget::setFixedSize(938,520);
+    QWidget::setFixedSize(938,520);
 
     QPixmap myPixmap(".\\traektoria.png");
     ui->labelFon->autoFillBackground();
@@ -108,10 +107,6 @@ Widget::Widget(QWidget *parent) :
 
     ui->pushButtonStopEmergency->setToolTip(" Останавливает программу робота (лампа RUN/HOLD).");
     ui->pushButtonContinue->setToolTip(" Возобновление программы робота (лампа RUN/HOLD).");
-    // ui->tabWidget->setCurrentIndex(0);
-    // ui->tab_6->setEnabled(false);
-    // ui->tab_5->setEnabled(false); // при старте глюк номер минус один
-
     // ui->gridLayout->setEnabled(false);
 
     //  qDebug ("Start");
@@ -425,8 +420,7 @@ int Widget::GetNastr()
             qFont = this->ItemNastrUzk->font();
             qFont.setStrikeOut(true);
             this->ItemNastrUzk->setFont(qFont);
-            ui->stackedWidget->setCurrentIndex(4);
-            //qFont = ui->labelCent->font();
+            //  ui->stackedWidget->setCurrentIndex(4);   // пееключать на другую вкладку - по кнопке далее
 
             if(!(this->processFazus->isOpen())) this->StartFazus();
         }
@@ -669,7 +663,9 @@ void Widget::ReadAnswer()
             qFont = this->ItemStartPoint->font();
             qFont.setStrikeOut(true);
             this->ItemStartPoint->setFont(qFont);
-            ui->stackedWidget->setCurrentIndex(1);
+            // ui->stackedWidget->setCurrentIndex(1);
+            //после выставления в начальную позицию поидее должныв начать грузить тчоки
+            //а потом уже переключим вкладку
             flag = 0;
         }
         if (str.contains("finisheddownload",Qt::CaseInsensitive))
@@ -682,7 +678,7 @@ void Widget::ReadAnswer()
             ui->progressBar->setHidden(true);
             ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]" + " Загрузка закончена " );
             //      qFont = ui->labelControl->font();
-            qFont.setBold(true);
+            // qFont.setBold(true);
             ///       ui->labelControl->setFont(qFont);
             // при повторном контроле не грузим точки - следовательно не попадаем сюда
             //  this->fazusD->SetFileNameNastr(this->fileNameNastr);
@@ -692,9 +688,9 @@ void Widget::ReadAnswer()
             this->bMassivButton[bnastrUZK]= true;
             this->SetButtonControl();
             this->bReadyControl = true;
-            ui->page_4->setEnabled(false);
-            ui->page_5->setEnabled(false);
-            ui->stackedWidget->setCurrentIndex(6);
+            // ui->page_4->setEnabled(false);
+            // ui->page_5->setEnabled(false);
+            ui->stackedWidget->setCurrentIndex(5);
             // ui->tab_5->setEnabled(false);
             //  ui->tab_6->setEnabled(false);
             //        ui->tabWidget->setCurrentIndex(1);
@@ -769,6 +765,10 @@ void Widget::ReadAnswer()
             ui->pushButtonZpMove_3->setEnabled(true);
             ui->pushButtonZmMove_3->setEnabled(true);
             //нужно подложить фазусу имя настройки
+            /*
+            // до этого сначала выбирали имя настрорйки а потом псоле калибровкии ее открывали
+            // теперь вся настройка происходит после калибровки сл имя не известно
+            // можно сохранять придыдущее
             QString tempName;
             tempName = ".\\_NASTR\\nstr.txt";
             QFile file(tempName);
@@ -785,7 +785,8 @@ void Widget::ReadAnswer()
             qbTemp.append(tempName);
             file.write(qbTemp); // записываем весь массив обратно в файл
             file.close();
-            this->StartFazus();
+            */
+            //this->StartFazus();
             /* */
             if(!(this->processFazus->isOpen())) this->StartFazus();
             flag = 0;
@@ -1414,7 +1415,7 @@ void Widget::OpenFileT(QString fileName)
     {
         QString nameFoldertrace = ".\\traectori";
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
-                                                    tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
+                                                tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
 
     }
     if (fileName != "")
@@ -1585,7 +1586,7 @@ void Widget::CreateHub()
     }
     data = QDateTime::currentDateTime();
     //QString name ="vtulka-" ;
-    QString name ="vtulka-oShift-" ;
+    QString name ="vtulka-" ;
     name = name + QString::number(ui->spinBoxOutD->value()) + "-" + QString::number(ui->spinBoxInD->value()) + "-" + QString::number(ui->spinBoxHight->value()) + "-" +QString::number(ui->doubleSpinBoxStepT->value())+".txt";
     name = name.prepend(".\\traectori\\");
     this->writeTrace(name.toUtf8().data(),ui->spinBoxOutD->value(),ui->spinBoxInD->value(),ui->spinBoxHight->value(),ui->doubleSpinBoxStepT->value());
@@ -1622,15 +1623,15 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
     unsigned int i = 0;							// Счетчик
     _sopen_s(&fh, chFileName, _O_RDWR | _O_TRUNC | _O_CREAT, _SH_DENYNO, _S_IREAD | _S_IWRITE);
     //внесем изменение - сдвиг по углу O  чтобы компенсировать установку фланца
-    float oShift = this->udpClient->Get_OinstrShift();
+    //float oShift = this->udpClient->Get_OinstrShift();  // траектория и так сдвигаеться перед загрузкой
     for(i = 0; i < (d_H*M_PI/(stepscan))*1.03; i++)  // домножили для перекрытия
     {
         sprintf_s(list, sizeof(list), "1;%5.3f;%5.3f;%5.3f;%5.3f;%5.3f;%5.3f;\n",
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   0.0,
-                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
-                  //istepangl*360/(d_H*M_PI/(stepscan)),
+                  // oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1638,8 +1639,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   H,
-                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
-                  //istepangl*360/(d_H*M_PI/(stepscan)),
+                  //oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1649,8 +1650,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   H,
-                  oShift + istepangl*360/(d_H*M_PI/(stepscan)),
-                  //istepangl*360/(d_H*M_PI/(stepscan)),
+                  //oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+                  istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1658,8 +1659,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
                   r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
                   0.0,
-                  oShift +  istepangl*360/(d_H*M_PI/(stepscan)),
-                  //istepangl*360/(d_H*M_PI/(stepscan)),
+                  //oShift +  istepangl*360/(d_H*M_PI/(stepscan)),
+                  istepangl*360/(d_H*M_PI/(stepscan)),
                   180.0,
                   0.0);
         _write(fh, list, strlen(list));
@@ -1669,7 +1670,8 @@ void Widget::writeTrace(const char *chFileName, 		// Название файла
               r*cos(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
               r*sin(i*stepscan*360*(2*M_PI/360)/(d_H*M_PI)),
               0.0,
-              oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+              //oShift + istepangl*360/(d_H*M_PI/(stepscan)),
+              istepangl*360/(d_H*M_PI/(stepscan)),
               180.0,
               0.0);
     _write(fh, list, strlen(list));
@@ -1767,8 +1769,6 @@ void Widget::WriteComment()
     file.close();
 
     ui->stackedWidget->setCurrentIndex(1);
-    // ui->listWidget->;
-
 }
 void Widget::StartFazus()
 {
@@ -1805,57 +1805,13 @@ void Widget::InitSystem()
     // надо - отдать все кнопки. вырубить все процессы
     // сбросить все настроки стереть точки из робота
 
-    this->ItemTitle = new QListWidgetItem;
-    ItemTitle->setText("-------Основные этапы контроля-------");
-    ItemTitle->setFlags(Qt::ItemIsUserCheckable); // вообще запрещает тыкать в надпись мышой, а не только менять галочку
-    ui->listWidget->insertItem(0, ItemTitle);
-
-    // QListWidgetItem *ItemReg = new QListWidgetItem;
-    this->ItemReg = new QListWidgetItem;
-    ItemReg->setText("Регистрация");
-    ui->listWidget->insertItem(1, ItemReg);
-
-    this->ItemTraect = new QListWidgetItem;
-    ItemTraect->setText("Выбор траектории");
-    ui->listWidget->insertItem(2, ItemTraect);
-
-    this->ItemOrient = new QListWidgetItem;
-    ItemOrient->setText("Ориентация акустической оси");
-    ui->listWidget->insertItem(3, ItemOrient);
-
-    this->ItemNastrUzk = new QListWidgetItem;
-    ItemNastrUzk->setText("Выбор настройки УЗК");
-    ui->listWidget->insertItem(4, ItemNastrUzk);
-
-    this->ItemStartPoint = new QListWidgetItem;
-    ItemStartPoint->setText("Выход в начальную точку");
-    ui->listWidget->insertItem(5, ItemStartPoint);
-
-    this->ItemControl = new QListWidgetItem;
-    ItemControl->setText("Контроль");
-    ui->listWidget->insertItem(6, ItemControl);
-
-    this->ItemVspomag = new QListWidgetItem;
-    ItemVspomag->setText("-------Вспомогательные действия-------");
-    ItemVspomag->setFlags(Qt::ItemIsUserCheckable);
-    ui->listWidget->insertItem(7, ItemVspomag);
-
-    this->ItemManualMove = new QListWidgetItem;
-    ItemManualMove->setText("Ручное перемещение");
-    ui->listWidget->insertItem(8, ItemManualMove);
-
-    this->ItemService = new QListWidgetItem;
-    ItemService->setText("Сервис");
-    ui->listWidget->insertItem(9, ItemService);
     QFont qFont;
-    this->bReadyControl = false;
-    //this->processMaxim->close();
-    this->processFazus->close();
-    this->processFazus->waitForFinished(500);
-    // this->processMaxim->waitForFinished(500);
-    rs10nComand comand;
-    comand.instruction = init;
-    this->udpClient->AddComand(comand);
+    for (int i = 1;i<   ui->listWidget->count(); i++)
+    {
+        qFont = ui->listWidget->item(i)->font();
+        qFont.setStrikeOut(false);
+        ui->listWidget->item(i)->setFont(qFont);
+    }
 
     this->DeletePoint();
 
@@ -1903,31 +1859,6 @@ void Widget::InitSystem()
     this->bMassivButton[bpark] = true;
     this->SetButtonControl();
 
-    //    qFont = ui->labelReg->font();
-    //    qFont.setBold(true);
-    //    ui->labelReg->setFont(qFont);
-    //    ui->labelReg->setEnabled(true);
-    //    ui->labelTra->setFont(qFont);
-    //    qFont.setBold(false);
-    //    ui->labelTra->setFont(qFont);
-    //    ui->labelTra->setEnabled(true);
-    //    ui->labelCent->setFont(qFont);
-    //    qFont.setBold(false);
-    //    ui->labelCent->setFont(qFont);
-    //    ui->labelCent->setEnabled(true);
-    //    ui->labelStart->setFont(qFont);
-    //    qFont.setBold(false);
-    //    ui->labelStart->setFont(qFont);
-    //    ui->labelStart->setEnabled(true);
-    //    ui->labelNastr->setFont(qFont);
-    //    qFont.setBold(false);
-    //    ui->labelNastr->setFont(qFont);
-    //    ui->labelNastr->setEnabled(true);
-    //    ui->labelControl->setFont(qFont);
-    //    qFont.setBold(false);
-    //    ui->labelControl->setFont(qFont);
-    //    ui->labelControl->setEnabled(true);
-
     this->comment.clear(); // стер данные регистрации
     ui->lTrarName->setText("Файл не выбран");
     ui->lNastrName->setText("Настройка не выбрана");
@@ -1964,15 +1895,9 @@ void Widget::RepeatControl()
     this->bMassivButton[bstop]= false;
 
     this->SetButtonControl();
-
-    //    ui->labelNastr->setFont(qFont);
-    //    qFont.setBold(true);
-    //    ui->labelNastr->setFont(qFont);
-    //    ui->labelNastr->setEnabled(true);
-    //    ui->labelControl->setFont(qFont);
-    //    qFont.setBold(true);
-    //    ui->labelControl->setFont(qFont);
-    //    ui->labelControl->setEnabled(true);
+    qFont = this->ItemNastrUzk->font();
+    qFont.setStrikeOut(false);
+    this->ItemNastrUzk->setFont(qFont);
 }
 void Widget::HideTab()
 {
@@ -2258,8 +2183,8 @@ void Widget::stepMmPlus()
 {
     rs10nComand comand;
     comand.instruction = move2point;
-    comand.parametr1 = ui->doubleSpinBoxStepDegree->value();
-    comand.parametr2 = -1;
+    comand.parametr1 = ui->doubleSpinBoxStepMm->value();
+    comand.parametr2 = 1;
     this->udpClient->AddComand(comand);
 }
 QString Widget::chtosyQt(QString str)
@@ -2293,7 +2218,7 @@ int Widget::on_listWidget_currentRowChanged(int currentRow)
 
 void Widget::NextPageButton()
 {
-  ui->stackedWidget->setCurrentIndex(1+ ui->stackedWidget->currentIndex());
+    ui->stackedWidget->setCurrentIndex(1+ ui->stackedWidget->currentIndex());
 }
 
 
@@ -2317,11 +2242,19 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
         comand.instruction = setCircle; // сразу создаем траекторию новую
         this->udpClient->AddComand(comand);
         break;
-    case 5:
-        Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
-
+    case 4:
+        ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+        comand.instruction = changeMoveMode;
+        comand.parametr1 = 0;
+        this->udpClient->AddComand(comand);
         break;
-
+    case 5:
+        ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+        comand.instruction = changeMoveMode;
+        comand.parametr1 = 0;
+        this->udpClient->AddComand(comand);
+        //Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
+        break;
     default:
         break;
     }

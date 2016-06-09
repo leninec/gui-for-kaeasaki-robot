@@ -595,7 +595,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_17">
@@ -1196,7 +1196,7 @@
        <item row="0" column="5">
         <widget class="QLabel" name="label_15">
          <property name="text">
-          <string>  </string>
+          <string/>
          </property>
         </widget>
        </item>
@@ -1923,7 +1923,7 @@
     <widget class="QPushButton" name="pushButtonDeletePoint">
      <property name="geometry">
       <rect>
-       <x>440</x>
+       <x>490</x>
        <y>170</y>
        <width>151</width>
        <height>23</height>
@@ -1936,7 +1936,7 @@
     <widget class="QLabel" name="labelPass">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>360</x>
        <y>10</y>
        <width>111</width>
        <height>16</height>
@@ -1949,7 +1949,7 @@
     <widget class="QPushButton" name="pushButtonHere">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>320</x>
        <y>170</y>
        <width>161</width>
        <height>23</height>
@@ -2072,7 +2072,7 @@
     <widget class="QPushButton" name="pushButtonHide">
      <property name="geometry">
       <rect>
-       <x>520</x>
+       <x>560</x>
        <y>30</y>
        <width>75</width>
        <height>23</height>
@@ -2085,7 +2085,7 @@
     <widget class="QLineEdit" name="lineEditPass">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>360</x>
        <y>30</y>
        <width>113</width>
        <height>20</height>
@@ -2108,7 +2108,7 @@
     <widget class="QPushButton" name="pushButtonClearStep">
      <property name="geometry">
       <rect>
-       <x>440</x>
+       <x>490</x>
        <y>140</y>
        <width>151</width>
        <height>23</height>
@@ -2144,7 +2144,7 @@
     <widget class="QPushButton" name="pushButtonResetandResume">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>320</x>
        <y>140</y>
        <width>161</width>
        <height>23</height>
@@ -2157,7 +2157,7 @@
     <widget class="QPushButton" name="pushButtonPass">
      <property name="geometry">
       <rect>
-       <x>430</x>
+       <x>480</x>
        <y>30</y>
        <width>75</width>
        <height>23</height>
@@ -2195,8 +2195,8 @@
     <widget class="QWidget" name="gridLayoutWidget_2">
      <property name="geometry">
       <rect>
-       <x>310</x>
-       <y>80</y>
+       <x>360</x>
+       <y>70</y>
        <width>201</width>
        <height>54</height>
       </rect>

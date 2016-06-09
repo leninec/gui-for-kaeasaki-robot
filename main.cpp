@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
    //QApplication::desktop().screenGeometry();
   //  w.setGeometry(950,450,938,565);
-    //w.setGeometry(10,27,938,565);
+   // w.setGeometry(10,27,938,565);
     w.show();
 
     return a.exec();

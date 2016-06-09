@@ -503,6 +503,32 @@ void fazus::Nastr(QString fileName)
             this->infoScan[46]=(int(this->strob_can[1].am_op)&0x000000FF); // амплитуда опрного строба канал 2
             this->infoScan[47]=(int(this->strob_can[1].cc[0]*100)&0x000000FF); // задержка 1 строба второго канала относителньо опорного
             this->infoScan[48]=(int(this->strob_can[1].cc[0]*100)&0x0000FF00)>>8;
+
+            this->infoScan[70]=(this->cnl_dt[0].can_izl&0x000000FF);  //номер излучателя 1 канал
+                       this->infoScan[71]=(this->cnl_dt[0].can_prm&0x000000FF);
+
+                       this->infoScan[75]=(this->cnl_dt[0].i_n_per&0x000000FF); // число периодов 1 канал
+
+                       this->infoScan[76]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[77]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x0000FF00)>>8;
+                       this->infoScan[78]=(int((this->cnl_dt[0].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[79]=(int((this->cnl_dt[0].d_usil_can)*100)&0x0000FF00)>>8;
+                       this->infoScan[80]=(int((this->cnl_dt[0].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[81]=(int((this->cnl_dt[0].d_st_rob)*100)&0x0000FF00)>>8;
+
+                       this->infoScan[82]=(this->cnl_dt[1].can_izl&0x000000FF);  //номер излучателя 2 канал
+                       this->infoScan[83]=(this->cnl_dt[1].can_prm&0x000000FF);
+
+                       this->infoScan[87]=(this->cnl_dt[1].i_n_per&0x000000FF); // число периодов 2 канал
+
+                       this->infoScan[88]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[89]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x0000FF00)>>8;
+
+                       this->infoScan[90]=(int((this->cnl_dt[1].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[91]=(int((this->cnl_dt[1].d_usil_can)*100)&0x0000FF00)>>8;
+
+                       this->infoScan[92]=(int((this->cnl_dt[1].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
+                       this->infoScan[93]=(int((this->cnl_dt[1].d_st_rob)*100)&0x0000FF00)>>8;
         }
     }
 }
@@ -520,7 +546,7 @@ int fazus::one_shot_pin(QString nameNastr, int *pin)
     // функция возвращает найденный максимум в развертке и
     // через указатель его метсоположение
     int errr;
-    int n;
+    //int n;
     unsigned char  tmpB[15000];
     int maxAmp;
     this->Rasc_Tabl();

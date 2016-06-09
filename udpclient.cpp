@@ -29,7 +29,8 @@ UdpClient::UdpClient(QObject *parent) : QObject(parent)
     this->fStepAngle = 0;
     this->rHub = 0;
     this->pFazus = NULL;
-    this->fOinstrShift = 0;
+    this->fOinstrShift = -42;   // временная компенсация положения датчиков
+    this->flagCircle = 0;
     //    this->bSdvig = false;
     connect(this->timer,SIGNAL(timeout()),this,SLOT(EventTimer()), Qt::DirectConnection );
     //QEventLoop loop;
@@ -735,16 +736,16 @@ void UdpClient::SaveC(QByteArray array)
     }
     if (this->fStepAngle)
     {
-        this->infoScan[0]=24;// версия программы
-        this->infoScan[50]=(this->iSpeed&0x000000FF);  // скорость перемещения машипулятора в процентах
-        this->infoScan[51]=(this->iMesh&0x000000FF);   // шаг координатной сетки робота
+        this->infoScan[0] = 24;// версия программы
+        this->infoScan[50] = (this->iSpeed&0x000000FF);  // скорость перемещения машипулятора в процентах
+        this->infoScan[51] = (this->iMesh&0x000000FF);   // шаг координатной сетки робота
         char float_bytes[sizeof(float)];
         memcpy(float_bytes, &fStepAngle, sizeof(float));
 
-        this->infoScan[60]=float_bytes[0];   // шаг по углу
-        this->infoScan[61]=float_bytes[1];
-        this->infoScan[62]=float_bytes[2];
-        this->infoScan[63]=float_bytes[3];
+        this->infoScan[60] = float_bytes[0];   // шаг по углу
+        this->infoScan[61] = float_bytes[1];
+        this->infoScan[62] = float_bytes[2];
+        this->infoScan[63] = float_bytes[3];
     }
     bfile.write(this->infoScan,sizeof(this->infoScan));
 
@@ -1088,13 +1089,31 @@ int UdpClient::OpenFileT(QString nameFile)
 }
 int UdpClient::HereShift() // функция, берущая текущую координату и сдвигающая на нее массив точек
 {
+    QByteArray Data;
+    float x,y,z;
+
     this->DeletePoint();
     if (this->qbaTrajectory.count() == 0)
     {                      // если траектория не загружена сдвигать нечего
         emit error("Не открыт файл с траекторий.");
         return 1;
     }
+    // предпологается что это функция вызывается только после калибровки
+    // а во время калибровки мы сохранили координаты начальной точки
+    // нам нужно только дописать туда новый z
 
+    if (this->Here(&x,&y,&z) ) return 1;
+    this->fZShift = z;
+    QString st(this->qbaTrajectory);
+    QStringList coordList = st.split('\n').first().split(";");
+
+    this->fXShift = fXShift - coordList[1].toDouble();
+    this->fYShift = fYShift - coordList[2].toDouble();
+    this->fZShift = fZShift - coordList[3].toDouble();
+    this->fOShift = fOShift - coordList[4].toDouble();
+    this->fAShift = fAShift - coordList[5].toDouble();
+    this->fTShift = fTShift - coordList[6].toDouble();
+/*
     this->Here();
     int i = this->vPpriemMessage.size();
     if (i ==0 )
@@ -1102,7 +1121,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
         emit error("Потерял данные в векторее сообщений");
         return 1;
     }
-    QByteArray Data;
+
     Data = this->vPpriemMessage[i-1];
     // размер 1 а индекс первого ноль
 
@@ -1137,7 +1156,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     this->fOShift=this->Round(fOShift);
     this->fAShift=this->Round(fAShift);
     this->fTShift=this->Round(fTShift);
-
+*/
     QString stroka;
     stroka="4;";
     stroka=stroka+QString::number(fXShift)+";"+QString::number(fYShift)+";"+QString::number(fZShift)+";";
@@ -1147,6 +1166,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     Data.append(stroka);// запихиваем в пакет матрицу смещения
 
     if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
+
 
     QByteArray qbM;
     qbM.append("start posithion");
@@ -1186,6 +1206,32 @@ int UdpClient::Here(float *x,float *y,float *z)
         *x = message[0].toFloat();
         *y = message[1].toFloat();
         *z = message[2].toFloat();
+    }
+    return er;
+}
+int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
+{
+    QByteArray Data;
+    Data.append("2;");// узнать текущую координату
+    int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
+    if ( er ==0 )
+    {
+        int i = this->vPpriemMessage.size();
+        if (i ==0 )
+        {
+            emit error("Потерял данные в векторее сообщений определение координаты");
+            return 1;
+        }
+        Data = this->vPpriemMessage[i-1];
+        QString str(Data);
+        QStringList message = str.split(";");
+        *x = message[0].toFloat();
+        *y = message[1].toFloat();
+        *z = message[2].toFloat();
+        *o = message[3].toFloat();
+        *a = message[3].toFloat();
+        *t = message[3].toFloat();
+
     }
     return er;
 }
@@ -1309,20 +1355,20 @@ int UdpClient::Calibration(int napr)
     float oTmp = 0;
     float aTmp = 0;
     float tTmp = 0;
-    float  fycoord1 = 0;
-    float  fycoord2 = 0;
-    float  fxcoord1 = 0;
-    float  fxcoord2 = 0;
-    int increase = 0;
-    float stepNastr = (float)0.7;
-    int ampLow = 55;
-    int ampMax = 207;
-    int znak = 1;
-    int itimeX1 = 0;
-    int itimeX2 = 0;
-    int itimeY1 = 0;
-    int itimeY2 = 0;
-    int countZnak = 0; // накопитель для определения направления движения
+    float fycoord1 = 0;
+    float fycoord2 = 0;
+    float fxcoord1 = 0;
+    float fxcoord2 = 0;
+    int   increase = 0;
+    float stepNastr = (float)0.7;  // величина шага для поиска максимума.
+    int   ampLow = 55;  // с ацп получаем амплитуда в 255 отчетов. для поиска максимума стараемся держать сигнал где то посередине
+    int   ampMax = 207;
+    int   znak = 1;
+    int   itimeX1 = 0;
+    int   itimeX2 = 0;
+    int   itimeY1 = 0;
+    int   itimeY2 = 0;
+    int   countZnak = 0; // накопитель для определения направления движения
     float fZmax = 100;
 
     QString nameFolder =  ".\\system-nastr\\exo1-1-";
@@ -1359,7 +1405,7 @@ int UdpClient::Calibration(int napr)
 
     //if (this->DeletePoint()) return 1; // в ориентации фланца и так стираем точки
     int begin = 0;
-    int end = 0;
+    int end   = 0;
     begin = this->qbaTrajectory.indexOf(";");
     end = this->qbaTrajectory.indexOf(";",2);
     QByteArray qbtemp;
@@ -1405,7 +1451,8 @@ int UdpClient::Calibration(int napr)
     // необоходимо развернуть фланец перепендикулярно ванне
 
     if( this->Orientation180(0)) return 1;  // параметр 0 чтобы сохранить первую точку
-
+    // парметр пока не учитывается!!
+    if (this->DeleteShift()) return 1;   // в ориентации теперь не удаляем смещение, а все точки дял калибровки создаються без смещения
     SleeperThread::msleep(50);
     // фланец установлен начинаем искать сигнал
     nameNastr = this->SearhIncreace(nameFolder,ampLow,ampMax);
@@ -1513,8 +1560,8 @@ int UdpClient::Calibration(int napr)
     this->pFazus->one_shot_pin(nameNastr.toUtf8().data(),&itimeY1); // померили время прихода эхо сигнала в 1 точке
     if (this->Here(&xTmp,&yTmp,&zTmp)) return 1; // точка максимума по Y найдена сохраняем координату 1
 
-    fycoord1=yTmp; // запомнили координату  1 точки
-    fxcoord1=xTmp;
+    fycoord1 = yTmp; // запомнили координату  1 точки
+    fxcoord1 = xTmp;
 
     // Поиск максимума  по оси X 1
 
@@ -1522,16 +1569,16 @@ int UdpClient::Calibration(int napr)
     // нашли Х координату относительно 0
     // рассчиттываем координаты точки максимально удаленной от робта плюс подворот фланца
     // из текущего Х необходимо вычесть coordinatX а к Y прибавить
-    xTmp=fxcoord1-radius_hub;       // Считаем вторую точку, относительно первой
-    yTmp=fycoord1+radius_hub;
-    zTmp=zTmp+fZmax;
-    oTmp = 90;
+    xTmp = fxcoord1 - radius_hub;       // Считаем вторую точку, относительно первой
+    yTmp = fycoord1 + radius_hub;
+    zTmp = zTmp + fZmax;
+    oTmp = 90 + this->fOinstrShift;  // Изменение от 06.06.16 так как инструмент стоит криво(((
     aTmp = 180;
     tTmp = 0;
 
     qstmp = "1;" + QString::number(xTmp) + ";" + QString::number(yTmp)+";" + QString::number(zTmp) + ";"+QString::number(oTmp)+";" + QString::number(aTmp)+";" + QString::number(tTmp)+";";
 
-    //  emit error(qstmp);
+    //emit error("вторая точка " + qstmp);
     Data.clear();
     Data.append(qstmp);
     if (this->SendCommand(Data,"point"," Ошибка создания точки  ",0 ))
@@ -1550,9 +1597,9 @@ int UdpClient::Calibration(int napr)
     SleeperThread::sleep(1); //погодить пока доедет.
     if (this->MoveZ(-fZmax)) return 1; // опускаемся обратно на деталь
     viAmpMax.clear();
-    znak=1;
-    countZnak=0;
-    increase=0;
+    znak = 1;
+    countZnak = 0;
+    increase = 0;
 
     nameNastr = this->SearhIncreace(nameFolder,ampLow,ampMax); // ищем сигнал во второй точке
     if (nameNastr == "NULL")
@@ -1561,14 +1608,14 @@ int UdpClient::Calibration(int napr)
         emit error(" Неверное имя натсройки");
         return 1;
     }
-    for (int i=0;i<5;i++) // проходим 5 точек а одном направлении и записываем величину сигнала
+    for (int i = 0;i<5;i++) // проходим 5 точек а одном направлении и записываем величину сигнала
     {
         this->MoveX(1*znak);
         SleeperThread::msleep(5);
         viAmpMax.append(this->pFazus->one_shot(nameNastr.toUtf8().data()));
     }
     // определяем в каком направлении необходимо двигаться
-    for (int i=1;i<viAmpMax.size();i++)
+    for (int i = 1;i<viAmpMax.size();i++)
     {
         if (viAmpMax[i]-viAmpMax[i-1]>0)
         {
@@ -1598,8 +1645,8 @@ int UdpClient::Calibration(int napr)
                 {
                     if(viAmpMax[i+1]-viAmpMax[i]<0)
                     {
-                        countZnak-=2;
-                        countZnak-=viAmpMax.size(); // прошли максимум нужно двигаться в обратную сторону
+                        countZnak-= 2;
+                        countZnak-= viAmpMax.size(); // прошли максимум нужно двигаться в обратную сторону
                         i++;
                         // ui->filePlainTextEdit->appendPlainText(" смена знака");
                     }
@@ -1616,13 +1663,13 @@ int UdpClient::Calibration(int napr)
         }
     }
     //number(countZnak) + " приращение");
-    if (countZnak>0)
+    if (countZnak > 0)
     {
-        znak=znak; //продолжаем движение");
+        znak = znak; //продолжаем движение");
     }
     else
     {
-        znak=-znak;//" движемся обратно");
+        znak = -znak;//" движемся обратно");
     }
     // движение маленькими шажками в выбранную сторону для выхода в максимум
     nameNastr = ".\\system-nastr\\exo1-1-5db.nst" ;
@@ -1654,30 +1701,32 @@ int UdpClient::Calibration(int napr)
     this->pFazus->one_shot_pin(nameNastr.toUtf8().data(),&itimeX1); // померили время прихода эхо сигнала в 1 точке
     if (this->Here(&xTmp,&yTmp,&zTmp)) return 1; // точка максимума по Y найдена сохраняем координату 1
 
-    fycoord2=yTmp; // запомнили координату  2 точки
-    fxcoord2=xTmp;
+    fycoord2 = yTmp; // запомнили координату  2 точки
+    fxcoord2 = xTmp;
     //едем в третью точку
-    QString snextpoint = "1;"+QString::number(fxcoord1-2*radius_hub) + ";" + QString::number(fycoord1) + ";" + QString::number(zTmp+fZmax) + ";180;180;0;";
+    oTmp = 180 + this->fOinstrShift;
+    QString threePoint = "1;" + QString::number(fxcoord1 - 2*radius_hub) + ";" + QString::number(fycoord1) + ";" + QString::number(zTmp+fZmax)+";" + QString::number(oTmp)+";180;0;";// 06.06.16
     Data.clear();
-    Data.append(snextpoint);
+    Data.append(threePoint);
+    //emit error("точка 3 " + threePoint);
     if(this->SendCommand(Data,"point"," Ошибка создания третьей точки",0))
     {
         this->pFazus->Stop_fazus();
         return 1;
-    }
+    }   
     if (this->MoveZ(fZmax)) return 1;
     Data.clear();
     Data.append("16;");
-    if(this->SendCommand(Data,"movestart", "Ошибка начала движения к третьей точке",1)) return 1;
+    if (this->SendCommand(Data,"movestart", "Ошибка начала движения к третьей точке",1)) return 1;
     if (this->WaitingMoveFinish()) return 1;
     SleeperThread::sleep(1);
     if (this->MoveZ(-fZmax))return 1; // опускаемся вниз на деталь
     SleeperThread::sleep(1);
 
     viAmpMax.clear();
-    znak=1;
-    countZnak=0;
-    increase=0; // начинаем искать сигнал в 3 точке
+    znak = 1;
+    countZnak = 0;
+    increase = 0; // начинаем искать сигнал в 3 точке
 
     nameNastr = this->SearhIncreace(nameFolder,ampLow,ampMax);
     if (nameNastr == "NULL")
@@ -1779,9 +1828,10 @@ int UdpClient::Calibration(int napr)
 
     if(this->MoveZ(fZmax)) return 1;
 
-    QString point4 = "1;"+QString::number(fxcoord1-radius_hub) + ";" + QString::number(fycoord2-2*radius_hub) + ";" + QString::number(zTmp+fZmax) + ";-90;180;0;";
+    QString point4 = "1;"+QString::number(fxcoord1-radius_hub) + ";" + QString::number(fycoord2-2*radius_hub) + ";" + QString::number(zTmp+fZmax)+";" + QString::number(-90 + this->fOinstrShift)+ ";180;0;";// 06.06.16
     Data.clear();
     Data.append(point4);
+    //emit error("точка 4 " + point4 );
     if(this->SendCommand(Data,"point"," Ошибка создания точки",0)) return 1;
     SleeperThread::sleep(2);
 
@@ -1792,9 +1842,9 @@ int UdpClient::Calibration(int napr)
     SleeperThread::sleep(1);
     if(this->MoveZ(-fZmax)) return 1;
     viAmpMax.clear();
-    znak=1;
-    countZnak=0;
-    increase=0; //поиск максимума 4 точка
+    znak = 1;
+    countZnak = 0;
+    increase = 0; //поиск максимума 4 точка
 
     nameNastr = this->SearhIncreace(nameFolder,ampLow,ampMax);
     if (nameNastr == "NULL")
@@ -1803,13 +1853,13 @@ int UdpClient::Calibration(int napr)
         emit error(" Неверное имя натсройки");
         return 1;
     }
-    for (int i=0;i<5;i++) // проходим 5 точек а одном направлении и записываем величину сигнала
+    for (int i = 0;i < 5;i++) // проходим 5 точек а одном направлении и записываем величину сигнала
     {
         this->MoveX(1*znak);
         viAmpMax.append(this->pFazus->one_shot(nameNastr.toUtf8().data()));
     }
     // определяем в каком направлении необходимо двигаться
-    for (int i=1;i<viAmpMax.size();i++)
+    for (int i = 1;i < viAmpMax.size();i++)
     {
         if (viAmpMax[i]-viAmpMax[i-1]>0)
         {
@@ -1911,7 +1961,8 @@ int UdpClient::Calibration(int napr)
     this->vPpriemMessage.append(Data);
     emit answer();
 
-    QString point1 = "1;"+QString::number(fxcoord1-sdvigX) + ";" + QString::number(fycoord1-sdvigY) + ";" + QString::number(zTmp+100) + ";0;180;0;";
+    QString point1 = "1;"+QString::number(fxcoord1-sdvigX) + ";" + QString::number(fycoord1-sdvigY) + ";" + QString::number(zTmp+100)+";"+QString::number(0 + this->fOinstrShift) + ";180;0;";  // 07.06.16
+    //emit error("точка 5 " + point1 + " значение сдвига по углу O " + QString::number(0 + this->fOinstrShift));
     Data.clear();
     Data.append(point1);
 
@@ -1929,6 +1980,9 @@ int UdpClient::Calibration(int napr)
     Data.clear();
     Data.append("64;");
     this->SendCommand(Data,"shiftsave","Ошибка сохранения смещения после калибровки",1);
+    // координаты смещения сохранены на роботе но при загрузке точек используем обычное смещение надо сохранить текущие координаты кроме z
+    this->Here(&(this->fXShift),&(this->fYShift),&(this->fZShift),&(this->fOShift),&(this->fAShift),&(this->fTShift));
+// сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
     Data.clear();
     Data.append("calibration finish");
     this->vPpriemMessage.append(Data);
@@ -1940,7 +1994,7 @@ int UdpClient::Orientation180(int del)
 {
     QByteArray Data;
     if (this->DeletePoint()) return 1; //можно угробить уже залитую траекторию
-    //  if (this->DeleteShift()) return 1;
+    //  if (this->DeleteShift()) return 1;     //в результате при калибровке словили ошибку так не был стерто смещение сотрем смещние в калибровке
     /* координаты в блокнотовских файлах мы формируем относительно 0. Если такую координату
      залить в робота без смещения то робот попытается уехать себе в основание и сотановиться с ошибкой
      чтобы избежать этого изначально в роботе заданно смещение -1000 по z
@@ -1960,7 +2014,6 @@ int UdpClient::Orientation180(int del)
     float oTmp = 0;
     float aTmp = 0;
     float tTmp = 0;
-
 
     this->Here();
     int i = this->vPpriemMessage.size();
@@ -1983,8 +2036,8 @@ int UdpClient::Orientation180(int del)
     }
 
     this->vPpriemMessage.clear();
-  //  i = this->vPpriemMessage.size();
-//    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
+    //  i = this->vPpriemMessage.size();
+    //    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
     QStringList strList = str.split(';');
     xTmp = strList[0].toFloat();
     yTmp = strList[1].toFloat();
@@ -1992,11 +2045,11 @@ int UdpClient::Orientation180(int del)
     oTmp = 0 + this->fOinstrShift;   // добавили сдвиг так как другой фланец
     aTmp = 180;
     tTmp = 0;
-
+    //emit error(QString::number(oTmp)+ " Угол О новой точки");
     Data.clear();
     Data.append("1;" + QString::number(xTmp) + ";" + QString::number(yTmp)+";" + QString::number(zTmp) + ";"+QString::number(oTmp)+";" + QString::number(aTmp)+";" + QString::number(tTmp)+";");
-   // this->SendCommand(Data);
-     if (this->SendCommand(Data,"point","Ошибка создания новой точки",0)) return 1;
+    // this->SendCommand(Data);
+    if (this->SendCommand(Data,"point","Ошибка создания новой точки",0)) return 1;
     /*
      при создании точки робот вышлет лишнее собщение об отсувии калибровки
      информация об отсувии смещения добавлено внутрь собщение, в ответ одно сообщение теперь
@@ -2005,7 +2058,7 @@ int UdpClient::Orientation180(int del)
     Data.clear();
     Data.append("16;"); // команда поехать
     if (this->SendCommand(Data,"movestart","Ошибка ориентации фланца, движение",1)) return 1;
-   // this->SendCommand(Data);
+    // this->SendCommand(Data);
 
     if (this->WaitingMoveFinish()) return 1;
     Data.clear();
@@ -2128,6 +2181,7 @@ int UdpClient::MoveZ(float value)
     Data.clear();
     Data.append(stroka);
     er = this->SendCommand(Data,"movefinish","Ошибка перемещение Z",1,15000,1);
+    this->flagCircle = 0;
     return er;
 }
 int UdpClient::SetSpeed(float value)
@@ -2654,10 +2708,11 @@ int UdpClient::SetCircle(float r,float step)
 {
     QByteArray Data;
     Data.clear();
-    QString stroka="60;";
-    stroka=stroka+QString::number(r)+";" +QString::number(step)+";";
+    QString stroka= "60;";
+    stroka = stroka + QString::number(r)+";" +QString::number(step)+";";
     Data.append(stroka);
-    this->SendCommand(Data,"circlecreate", " Ошибка создания круговой траектории",1);
+    if (this->SendCommand(Data,"circlecreate", " Ошибка создания круговой траектории",1)) return 1;
+    this->flagCircle = 1; // траектория для движения по дуге созданна
     return 0;
 }
 int UdpClient::ChangeMoveMode(int mode)
@@ -2672,6 +2727,10 @@ int UdpClient::ChangeMoveMode(int mode)
 }
 int UdpClient::Move2step(float step,int napr)
 {
+    if (!(this->flagCircle))
+    {
+        this->SetCircle(this->rHub,this->fStepAngle);
+    }
     QByteArray Data;
     Data.clear();
     QString stroka="62;";
@@ -2682,6 +2741,10 @@ int UdpClient::Move2step(float step,int napr)
 }
 int UdpClient::Move2degree(float degree,int napr)
 {
+    if (!(this->flagCircle))
+    {
+        this->SetCircle(this->rHub,this->fStepAngle);
+    }
     QByteArray Data;
     Data.clear();
     QString stroka="63;";
