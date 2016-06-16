@@ -106,6 +106,7 @@ private slots:
 
 
 
+
    // void on_tabWidget_currentChanged(int index);
 
     int on_listWidget_currentRowChanged(int currentRow);
@@ -144,6 +145,8 @@ private:
     int i_flag_button[12];
 
     QString chtosyQt(QString str);
+    void CloseButtonMotion();
+    void OpenButtonMotion();
     void SetButtonControl();
     void SetLabelConrol();
     void InitRobot();

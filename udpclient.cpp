@@ -1104,16 +1104,9 @@ int UdpClient::HereShift() // функция, берущая текущую ко
 
     if (this->Here(&x,&y,&z) ) return 1;
     this->fZShift = z;
-    QString st(this->qbaTrajectory);
-    QStringList coordList = st.split('\n').first().split(";");
 
-    this->fXShift = fXShift - coordList[1].toDouble();
-    this->fYShift = fYShift - coordList[2].toDouble();
-    this->fZShift = fZShift - coordList[3].toDouble();
-    this->fOShift = fOShift - coordList[4].toDouble();
-    this->fAShift = fAShift - coordList[5].toDouble();
-    this->fTShift = fTShift - coordList[6].toDouble();
-/*
+
+/**/
     this->Here();
     int i = this->vPpriemMessage.size();
     if (i ==0 )
@@ -1139,7 +1132,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     this->fOShift = strList[3].toDouble();
     this->fAShift = strList[4].toDouble();
     this->fTShift = strList[5].toDouble();
-
+/**/
     QString st(this->qbaTrajectory);
     QStringList coordList = st.split('\n').first().split(";");
 
@@ -1150,33 +1143,95 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     this->fAShift = fAShift - coordList[5].toDouble();
     this->fTShift = fTShift - coordList[6].toDouble();
 
-    this->fXShift=this->Round(fXShift);
-    this->fYShift=this->Round(fYShift);
-    this->fZShift=this->Round(fZShift);
-    this->fOShift=this->Round(fOShift);
-    this->fAShift=this->Round(fAShift);
-    this->fTShift=this->Round(fTShift);
-*/
+    this->fXShift = this->Round(fXShift);
+    this->fYShift = this->Round(fYShift);
+    this->fZShift = this->Round(fZShift);
+    this->fOShift = this->Round(fOShift);
+    this->fAShift = this->Round(fAShift);
+    this->fTShift = this->Round(fTShift);
+
     QString stroka;
-    stroka="4;";
-    stroka=stroka+QString::number(fXShift)+";"+QString::number(fYShift)+";"+QString::number(fZShift)+";";
-    stroka=stroka+QString::number(fOShift)+";"+QString::number(fAShift)+";"+QString::number(fTShift)+";";
+    stroka = "4;";
+    stroka = stroka+QString::number(fXShift)+";"+QString::number(fYShift)+";"+QString::number(fZShift)+";";
+    stroka = stroka+QString::number(fOShift)+";"+QString::number(fAShift)+";"+QString::number(fTShift)+";";
 
     Data.clear();
     Data.append(stroka);// запихиваем в пакет матрицу смещения
 
     if( this->SendCommand(Data,"shift","Ошибка задания смещения",0)) return 1;
 
-
     QByteArray qbM;
     qbM.append("start posithion");
     this->vPpriemMessage.append(qbM);
     emit answer();
+
+    qbM.clear();
+    qbM.append(stroka + "задаваемое смещение для начальной точки через сохраненное после калибровки смещение");
+    this->vPpriemMessage.append(qbM);
+    emit answer();
+
+  ///  получим смещение старым способом и сравним
+  /*  this->Here();
+    int i = this->vPpriemMessage.size();
+    if (i ==0 )
+    {
+        emit error("Потерял данные в векторее сообщений");
+        return 1;
+    }
+
+    Data = this->vPpriemMessage[i-1];
+    // размер 1 а индекс первого ноль
+
+    QString str1(Data);
+
+    QStringList strList=str1.split(';');
+    if (!(str1.contains("here",Qt::CaseInsensitive)))
+    {
+        emit error("Не то прочитал из вектора сообщений сдвиг координат");
+        return 1; //не то
+    }
+    this->fXShift = strList[0].toDouble();
+    this->fYShift = strList[1].toDouble();
+    this->fZShift = strList[2].toDouble();
+    this->fOShift = strList[3].toDouble();
+    this->fAShift = strList[4].toDouble();
+    this->fTShift = strList[5].toDouble();
+
+    QString st1(this->qbaTrajectory);
+    coordList = st1.split('\n').first().split(";");
+
+    this->fXShift = fXShift - coordList[1].toDouble();
+    this->fYShift = fYShift - coordList[2].toDouble();
+    this->fZShift = fZShift - coordList[3].toDouble();
+    this->fOShift = fOShift - coordList[4].toDouble();
+    this->fAShift = fAShift - coordList[5].toDouble();
+    this->fTShift = fTShift - coordList[6].toDouble();
+
+    this->fXShift = this->Round(fXShift);
+    this->fYShift = this->Round(fYShift);
+    this->fZShift = this->Round(fZShift);
+    this->fOShift = this->Round(fOShift);
+    this->fAShift = this->Round(fAShift);
+    this->fTShift = this->Round(fTShift);
+
+    stroka.clear();
+    stroka = "4;";
+    stroka = stroka+QString::number(fXShift)+";"+QString::number(fYShift)+";"+QString::number(fZShift)+";";
+    stroka = stroka+QString::number(fOShift)+";"+QString::number(fAShift)+";"+QString::number(fTShift)+";";
+
+    Data.clear();
+    Data.append(stroka);// запихиваем в пакет матрицу смещения
+
+    qbM.clear();
+    qbM.append(stroka + "задаваемое смещение для начальной точки через текущую координату");
+    this->vPpriemMessage.append(qbM);
+    emit answer();
+*/
     return 0;
 }
 float UdpClient::Round(float x)
 {
-    x=floor(x*100)/100;
+    x = floor(x*100)/100;
     return x;
 }
 int UdpClient::Here()
@@ -1231,7 +1286,6 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
         *o = message[3].toFloat();
         *a = message[3].toFloat();
         *t = message[3].toFloat();
-
     }
     return er;
 }
@@ -1982,9 +2036,14 @@ int UdpClient::Calibration(int napr)
     this->SendCommand(Data,"shiftsave","Ошибка сохранения смещения после калибровки",1);
     // координаты смещения сохранены на роботе но при загрузке точек используем обычное смещение надо сохранить текущие координаты кроме z
     this->Here(&(this->fXShift),&(this->fYShift),&(this->fZShift),&(this->fOShift),&(this->fAShift),&(this->fTShift));
-// сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
+    // сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
     Data.clear();
     Data.append("calibration finish");
+    this->vPpriemMessage.append(Data);
+    emit answer();
+
+    Data.clear();
+    Data.append(QString::number(this->fXShift)+";"+QString::number(this->fYShift)+";"+QString::number(this->fZShift)+";"+QString::number(this->fOShift)+";"+QString::number(this->fAShift)+";"+QString::number(this->fTShift)+";"+"координаты начальной точки после калибровки");
     this->vPpriemMessage.append(Data);
     emit answer();
 

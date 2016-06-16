@@ -363,8 +363,7 @@ int Widget::GetNastr()
         qbTemp.append(nameNastr);
         file.write(qbTemp); // записываем весь массив обратно в файл
         file.close();
-        this->bMassivButton[bcalibrovka]= true;
-        this->bMassivButton[bgetUzk]= true;
+        this->bMassivButton[bhereshift]= true;
         this->SetButtonControl();
         if (!bRepeatControl)
         {
@@ -376,25 +375,7 @@ int Widget::GetNastr()
             this->bMassivButton[bcalibrovka]= false;
             this->bMassivButton[bhereshift]= true;
             this->SetButtonControl();
-            //        ui->tab_8->setEnabled(false);
-
-            ui->pushButtonJ1P->setEnabled(false);
-            ui->pushButtonJ1M->setEnabled(false);
-            ui->pushButtonJ2P->setEnabled(false);
-            ui->pushButtonJ2M->setEnabled(false);
-            ui->pushButtonJ3P->setEnabled(false);
-            ui->pushButtonJ3M->setEnabled(false);
-            ui->pushButtonJ4P->setEnabled(false);
-            ui->pushButtonJ4M->setEnabled(false);
-            ui->pushButtonJ5P->setEnabled(false);
-            ui->pushButtonJ5M->setEnabled(false);
-            ui->pushButtonJ6P->setEnabled(false);
-            ui->pushButtonJ6M->setEnabled(false);
-            ui->pushButtonXmMove->setEnabled(false);
-            ui->pushButtonXpMove->setEnabled(false);
-            ui->pushButtonYmMove->setEnabled(false);
-            ui->pushButtonYpMove->setEnabled(false);
-
+            this->CloseButtonMotion();
             ui->pushButtonZpMove_3->setEnabled(true);
             ui->pushButtonZmMove_3->setEnabled(true);
             //нужно подложить фазусу имя настройки
@@ -407,7 +388,7 @@ int Widget::GetNastr()
             // если последняя - берет только расширение
             // tempName = this->fileNameNastr.replace(".nst","");
             tempName = this->fileNameNastr;
-            tempName=tempName.replace(".nst","");
+            tempName = tempName.replace(".nst","");
 
             //   tempName.replace("/",""
             tempName.replace("/", "\\\\");
@@ -420,7 +401,7 @@ int Widget::GetNastr()
             qFont = this->ItemNastrUzk->font();
             qFont.setStrikeOut(true);
             this->ItemNastrUzk->setFont(qFont);
-            //  ui->stackedWidget->setCurrentIndex(4);   // пееключать на другую вкладку - по кнопке далее
+            //ui->stackedWidget->setCurrentIndex(4);   // переключать на другую вкладку - по кнопке далее
 
             if(!(this->processFazus->isOpen())) this->StartFazus();
         }
@@ -642,23 +623,7 @@ void Widget::ReadAnswer()
             this->bMassivButton[bstop]= true;
             this->SetButtonControl();
 
-            ui->pushButtonJ1P->setEnabled(true);
-            ui->pushButtonJ1M->setEnabled(true);
-            ui->pushButtonJ2P->setEnabled(true);
-            ui->pushButtonJ2M->setEnabled(true);
-            ui->pushButtonJ3P->setEnabled(true);
-            ui->pushButtonJ3M->setEnabled(true);
-            ui->pushButtonJ4P->setEnabled(true);
-            ui->pushButtonJ4M->setEnabled(true);
-            ui->pushButtonJ5P->setEnabled(true);
-            ui->pushButtonJ5M->setEnabled(true);
-            ui->pushButtonJ6P->setEnabled(true);
-            ui->pushButtonJ6M->setEnabled(true);
-            ui->pushButtonXmMove->setEnabled(true);
-            ui->pushButtonXpMove->setEnabled(true);
-            ui->pushButtonYmMove->setEnabled(true);
-            ui->pushButtonYpMove->setEnabled(true);
-            // this->ItemStartPoint->setText(this->ItemStartPoint->text()+ "  (Выполненно)");
+            this->OpenButtonMotion();
             QFont qFont;
             qFont = this->ItemStartPoint->font();
             qFont.setStrikeOut(true);
@@ -677,13 +642,7 @@ void Widget::ReadAnswer()
             }
             ui->progressBar->setHidden(true);
             ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]" + " Загрузка закончена " );
-            //      qFont = ui->labelControl->font();
-            // qFont.setBold(true);
-            ///       ui->labelControl->setFont(qFont);
             // при повторном контроле не грузим точки - следовательно не попадаем сюда
-            //  this->fazusD->SetFileNameNastr(this->fileNameNastr);
-            //  this->fazusD->Nastr(this->fileNameNastr);
-            //  this->udpClient->GetPointer(*(this->fazusD));
             this->bMassivButton[bstart]= true;
             this->bMassivButton[bnastrUZK]= true;
             this->SetButtonControl();
@@ -693,7 +652,6 @@ void Widget::ReadAnswer()
             ui->stackedWidget->setCurrentIndex(5);
             // ui->tab_5->setEnabled(false);
             //  ui->tab_6->setEnabled(false);
-            //        ui->tabWidget->setCurrentIndex(1);
             flag = 0;
         }
         if (str.contains("filedel",Qt::CaseInsensitive))
@@ -718,16 +676,8 @@ void Widget::ReadAnswer()
             this->bMassivButton[bpump]= true;
             this->bMassivButton[bsliv]= true;
             this->SetButtonControl();
-            // здесь было бы неплохо закрыть кнопки ручного перемещения
 
-            ui->pushButtonXpMove_2->setEnabled(true);
-            ui->pushButtonXmMove_2->setEnabled(true);
-            ui->pushButtonYpMove_2->setEnabled(true);
-            ui->pushButtonYmMove_2->setEnabled(true);
-            ui->pushButtonZpMove_2->setEnabled(true);
-            ui->pushButtonZmMove_2->setEnabled(true);
-            ui->pushButtonZpMove_3->setEnabled(true);
-            ui->pushButtonZmMove_3->setEnabled(true);
+            this->OpenButtonMotion();
         }
         if (str.contains("calibrationfinish",Qt::CaseInsensitive))
         {
@@ -742,25 +692,10 @@ void Widget::ReadAnswer()
             this->SetButtonControl();
             /**/
             this->bMassivButton[bcalibrovka]= false;
-            this->bMassivButton[bhereshift]= true;
+            //  this->bMassivButton[bhereshift]= true; раньше открывали после калибровки. теперь после выбора настройки
             this->SetButtonControl();
 
-            ui->pushButtonJ1P->setEnabled(false);
-            ui->pushButtonJ1M->setEnabled(false);
-            ui->pushButtonJ2P->setEnabled(false);
-            ui->pushButtonJ2M->setEnabled(false);
-            ui->pushButtonJ3P->setEnabled(false);
-            ui->pushButtonJ3M->setEnabled(false);
-            ui->pushButtonJ4P->setEnabled(false);
-            ui->pushButtonJ4M->setEnabled(false);
-            ui->pushButtonJ5P->setEnabled(false);
-            ui->pushButtonJ5M->setEnabled(false);
-            ui->pushButtonJ6P->setEnabled(false);
-            ui->pushButtonJ6M->setEnabled(false);
-            ui->pushButtonXmMove->setEnabled(false);
-            ui->pushButtonXpMove->setEnabled(false);
-            ui->pushButtonYmMove->setEnabled(false);
-            ui->pushButtonYpMove->setEnabled(false);
+            this->CloseButtonMotion();
 
             ui->pushButtonZpMove_3->setEnabled(true);
             ui->pushButtonZmMove_3->setEnabled(true);
@@ -917,11 +852,7 @@ void Widget::ReadAnswer()
             ui->page_5->setEnabled(true);
             ui->page_6->setEnabled(true);
             ui->page_7->setEnabled(true);
-            //ui->tab_8->setEnabled(true);
-            // ui->tab_7->setEnabled(true);
-            // ui->tab_6->setEnabled(true);
-            //ui->tab_2->setEnabled(true);
-            // ui->tab_3->setEnabled(true);
+
             ui->checkBoxAscanWrite->setEnabled(true);
             //  int n = this->fazusD->get_nDef();
             //  ui->labelNastr->setText("Настройка не выбрана");
@@ -1455,6 +1386,7 @@ void Widget::HereShift()
     if(msgBox.clickedButton()== yes)
     {
         this->bMassivButton[bhereshift]= false;
+        this->CloseButtonMotion();
         this->SetButtonControl();
         data = QDateTime::currentDateTime();
         rs10nComand comand;
@@ -1699,14 +1631,7 @@ void Widget::Calibration()
         this->bMassivButton[bpark]= false;
         this->bMassivButton[bpump]= false;
         this->bMassivButton[bsliv]= false;
-        ui->pushButtonXpMove_2->setEnabled(false);
-        ui->pushButtonXmMove_2->setEnabled(false);
-        ui->pushButtonYpMove_2->setEnabled(false);
-        ui->pushButtonYmMove_2->setEnabled(false);
-        ui->pushButtonZpMove_2->setEnabled(false);
-        ui->pushButtonZmMove_2->setEnabled(false);
-        ui->pushButtonZpMove_3->setEnabled(false);
-        ui->pushButtonZmMove_3->setEnabled(false);
+        this->CloseButtonMotion();
 
         this->SetButtonControl();
         if(this->processFazus->isOpen())
@@ -1753,13 +1678,10 @@ void Widget::WriteComment()
     QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
     this->encodedComment = codec->fromUnicode(comment);
 
-    //this->ItemReg->setText(this->ItemReg->text()+ "  (Выполненно)");
-
     QFont qFont;
     qFont = this->ItemReg->font();
     qFont.setStrikeOut(true);
     this->ItemReg->setFont(qFont);
-
 
     QByteArray temp;
     temp.append(comment);
@@ -1772,7 +1694,6 @@ void Widget::WriteComment()
 }
 void Widget::StartFazus()
 {
-    // QDir::setCurrent("E:\\FAZUS_DLL\\fazus-N");
     if(this->processFazus->isOpen())
     {
         this->processFazus->close();
@@ -1784,7 +1705,6 @@ void Widget::StartFazus()
 }
 void Widget::StartMaxim()
 {
-    // QDir::setCurrent("E:\\FAZUS_DLL\\fazus-N");
     if (this->processMaxim->isOpen())
     {
         this->processMaxim->close();
@@ -1817,31 +1737,7 @@ void Widget::InitSystem()
 
     //ui->tabWidget->setCurrentIndex(0);
     //   ui->tab_2->setEnabled(true);
-    ui->pushButtonJ1P->setEnabled(true);
-    ui->pushButtonJ1M->setEnabled(true);
-    ui->pushButtonJ2P->setEnabled(true);
-    ui->pushButtonJ2M->setEnabled(true);
-    ui->pushButtonJ3P->setEnabled(true);
-    ui->pushButtonJ3M->setEnabled(true);
-    ui->pushButtonJ4P->setEnabled(true);
-    ui->pushButtonJ4M->setEnabled(true);
-    ui->pushButtonJ5P->setEnabled(true);
-    ui->pushButtonJ5M->setEnabled(true);
-    ui->pushButtonJ6P->setEnabled(true);
-    ui->pushButtonJ6M->setEnabled(true);
-    ui->pushButtonXmMove->setEnabled(true);
-    ui->pushButtonXpMove->setEnabled(true);
-    ui->pushButtonYmMove->setEnabled(true);
-    ui->pushButtonYpMove->setEnabled(true);
-
-    ui->pushButtonXpMove_2->setEnabled(true);
-    ui->pushButtonXmMove_2->setEnabled(true);
-    ui->pushButtonYpMove_2->setEnabled(true);
-    ui->pushButtonYmMove_2->setEnabled(true);
-    ui->pushButtonZpMove_2->setEnabled(true);
-    ui->pushButtonZmMove_2->setEnabled(true);
-    ui->pushButtonZpMove_3->setEnabled(true);
-    ui->pushButtonZmMove_3->setEnabled(true);
+    this->OpenButtonMotion();
 
     this->bMassivButton[bnastrUZK] = true;
     this->bMassivButton[bviev] = true;
@@ -2110,42 +2006,10 @@ void Widget::SetSpinZ( double valueZ)
         ui->SpinBoxZmove_4->setValue(valueZ);
     }
 }
-
-
 void Widget::on_pushButtonComment_clicked()
 {
     ui->plainTextEditComment->clear();
 }
-/*void Widget::on_tabWidget_currentChanged(int index)
-{
-    rs10nComand comand;
-
-    switch (index) // следить за индексами вкладок, могут убежать
-    {
-    case 1:
-        ui->plainTextEdit->appendPlainText(" Основной режим движения ");
-        comand.instruction = changeMoveMode;
-        comand.parametr1 = 0;
-        this->udpClient->AddComand(comand);
-        break;
-    case 3:
-        ui->plainTextEdit->appendPlainText(" Режим по дуге езденья ");
-        comand.instruction = changeMoveMode;
-        comand.parametr1 = 1;
-        this->udpClient->AddComand(comand);
-        comand.instruction = setCircle; // сразу создаем траекторию новую
-        this->udpClient->AddComand(comand);
-        break;
-    case 5:
-        Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
-
-        break;
-
-    default:
-        break;
-    }
-}
-*/
 void Widget::stepDegreeM()
 {
     rs10nComand comand;
@@ -2177,7 +2041,6 @@ void Widget::stepMmMinus()
     comand.parametr1 = ui->doubleSpinBoxStepMm->value();
     comand.parametr2 = -1;
     this->udpClient->AddComand(comand);
-
 }
 void Widget::stepMmPlus()
 {
@@ -2220,8 +2083,6 @@ void Widget::NextPageButton()
 {
     ui->stackedWidget->setCurrentIndex(1+ ui->stackedWidget->currentIndex());
 }
-
-
 void Widget::on_stackedWidget_currentChanged(int arg1)
 {
     rs10nComand comand;
@@ -2259,6 +2120,61 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
         break;
     }
 }
+void Widget::CloseButtonMotion()
+{
+    ui->pushButtonJ1P->setEnabled(false);
+    ui->pushButtonJ1M->setEnabled(false);
+    ui->pushButtonJ2P->setEnabled(false);
+    ui->pushButtonJ2M->setEnabled(false);
+    ui->pushButtonJ3P->setEnabled(false);
+    ui->pushButtonJ3M->setEnabled(false);
+    ui->pushButtonJ4P->setEnabled(false);
+    ui->pushButtonJ4M->setEnabled(false);
+    ui->pushButtonJ5P->setEnabled(false);
+    ui->pushButtonJ5M->setEnabled(false);
+    ui->pushButtonJ6P->setEnabled(false);
+    ui->pushButtonJ6M->setEnabled(false);
+    ui->pushButtonXmMove->setEnabled(false);
+    ui->pushButtonXpMove->setEnabled(false);
+    ui->pushButtonYmMove->setEnabled(false);
+    ui->pushButtonYpMove->setEnabled(false);
+    ui->pushButtonZmMove->setEnabled(false);
+    ui->pushButtonZmMove_2->setEnabled(false);
+    ui->pushButtonZmMove_3->setEnabled(false);
+    ui->pushButtonZmMove_4->setEnabled(false);
+    ui->pushButtonZpMove->setEnabled(false);
+    ui->pushButtonZpMove_2->setEnabled(false);
+    ui->pushButtonZpMove_3->setEnabled(false);
+    ui->pushButtonZpMove_4->setEnabled(false);
+}
+void Widget::OpenButtonMotion()
+{
+    ui->pushButtonJ1P->setEnabled(true);
+    ui->pushButtonJ1M->setEnabled(true);
+    ui->pushButtonJ2P->setEnabled(true);
+    ui->pushButtonJ2M->setEnabled(true);
+    ui->pushButtonJ3P->setEnabled(true);
+    ui->pushButtonJ3M->setEnabled(true);
+    ui->pushButtonJ4P->setEnabled(true);
+    ui->pushButtonJ4M->setEnabled(true);
+    ui->pushButtonJ5P->setEnabled(true);
+    ui->pushButtonJ5M->setEnabled(true);
+    ui->pushButtonJ6P->setEnabled(true);
+    ui->pushButtonJ6M->setEnabled(true);
+    ui->pushButtonXmMove->setEnabled(true);
+    ui->pushButtonXpMove->setEnabled(true);
+    ui->pushButtonYmMove->setEnabled(true);
+    ui->pushButtonYpMove->setEnabled(true);
+    ui->pushButtonZmMove->setEnabled(true);
+    ui->pushButtonZmMove_2->setEnabled(true);
+    ui->pushButtonZmMove_3->setEnabled(true);
+    ui->pushButtonZmMove_4->setEnabled(true);
+    ui->pushButtonZpMove->setEnabled(true);
+    ui->pushButtonZpMove_2->setEnabled(true);
+    ui->pushButtonZpMove_3->setEnabled(true);
+    ui->pushButtonZpMove_4->setEnabled(true);
+}
+
 Widget::~Widget()
 {
     //  this->processMaxim->kill();

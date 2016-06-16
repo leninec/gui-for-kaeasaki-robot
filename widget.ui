@@ -595,7 +595,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_17">
@@ -1371,6 +1371,9 @@
      </widget>
     </widget>
     <widget class="QPushButton" name="pushButtonUzkOk">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>520</x>
