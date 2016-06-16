@@ -19,25 +19,14 @@ Widget::Widget(QWidget *parent) :
         // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
         this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
     }
-    else
-    {
-        QMessageBox msgBoxW;
-        msgBoxW.setText("Программа просмотра отсутвует или имеет неверное имя");
-        msgBoxW.exec();
-    }
+    // проверку на существование еще делаем в main  и оттуда закрываем приложение если файлов нет
     this->processFazus = new QProcess();
     if (QFile::exists(".\\VORON1.exe"))
     {
         //  this->processFazus->setProgram("E:\\FAZUS_DLL\\fazus-N\\VORON1.exe");
         this->processFazus->setProgram(".\\VORON1.exe");
     }
-    else
-    {
-        QMessageBox msgBoxW;
-        msgBoxW.setText("Программа настройки УЗК отсутвует или имеет неверное имя");
-        msgBoxW.exec();
-        // логично закрыть приложение, но нельзя вызывать функции закрытия в конструкторе
-    }
+    
     ui->setupUi(this);
     QWidget::setFixedSize(938,520);
 

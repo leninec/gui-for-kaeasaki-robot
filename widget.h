@@ -6,6 +6,7 @@
 #include "fazus.h"
 #include "UdpClient.h"
 #include <QListWidgetItem>
+#include <QMessageBox>
 
 
 
@@ -27,6 +28,7 @@ public:
 
 signals:
     void processStart();
+    void quit();
 
 public slots:
     void ErrorHandlerF(QString serr);

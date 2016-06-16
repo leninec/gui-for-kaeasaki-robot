@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
         QMessageBox msgBoxW;
         msgBoxW.setText("Программа настройки УЗК отсутвует или имеет неверное имя");
         msgBoxW.exec();
-        //return 1;
+        return 1;
     }
     if (!(QFile::exists(".\\PipeDefMultiWin.exe")))
     {
