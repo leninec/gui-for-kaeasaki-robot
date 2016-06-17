@@ -19,25 +19,14 @@ Widget::Widget(QWidget *parent) :
         // this->processMaxim->setProgram("E:\\FAZUS_DLL\\fazus-N\\PipeDefMultiWin.exe");
         this->processMaxim->setProgram(".\\PipeDefMultiWin.exe");
     }
-    else
-    {
-        QMessageBox msgBoxW;
-        msgBoxW.setText("Программа просмотра отсутвует или имеет неверное имя");
-        msgBoxW.exec();
-    }
+    // проверку на существование еще делаем в main  и оттуда закрываем приложение если файлов нет
     this->processFazus = new QProcess();
     if (QFile::exists(".\\VORON1.exe"))
     {
         //  this->processFazus->setProgram("E:\\FAZUS_DLL\\fazus-N\\VORON1.exe");
         this->processFazus->setProgram(".\\VORON1.exe");
     }
-    else
-    {
-        QMessageBox msgBoxW;
-        msgBoxW.setText("Программа настройки УЗК отсутвует или имеет неверное имя");
-        msgBoxW.exec();
-        // логично закрыть приложение, но нельзя вызывать функции закрытия в конструкторе
-    }
+
     ui->setupUi(this);
     QWidget::setFixedSize(938,520);
 
@@ -684,7 +673,7 @@ void Widget::ReadAnswer()
             qFont.setStrikeOut(true);
             this->ItemOrient->setFont(qFont);
             this->bMassivButton[bgetUzk]= true;
-            this->SetButtonControl();
+
             /**/
             this->bMassivButton[bcalibrovka]= false;
             //  this->bMassivButton[bhereshift]= true; раньше открывали после калибровки. теперь после выбора настройки
@@ -926,7 +915,7 @@ void Widget::ReadAnswer()
         }
         if(flag)
         {
-            ui->plainTextEditServis->appendPlainText("["+data.toString("HH:mm")+"] "  +str);
+            ui->plainTextEditServis->appendPlainText("["+data.toString("HH:mm")+"] "  + str);
         }
     }
 }
@@ -1661,6 +1650,33 @@ void Widget::GoFirstPoint()
 }
 void Widget::WriteComment()
 {
+
+    // тест исключений
+    /*
+
+    try
+    {
+     int a[10];
+     for (int x =10; x>-5;x--)
+     {
+         a[x] = x;
+     }
+
+     qDebug ("/null");
+    }
+    catch(const std::out_of_range& e)
+    {
+
+
+        qDebug()<<e.what();
+        qDebug ("catch");
+        QMessageBox msgBox;
+        msgBox.setWindowTitle(" Исключение");
+        msgBox.setText(" dgsdgs");
+        msgBox.exec();
+    }
+    /**/
+
     this->comment.clear();
     QString stmp = ui->lineEditName->text();
     stmp.replace(QString("&"), QString(""));
