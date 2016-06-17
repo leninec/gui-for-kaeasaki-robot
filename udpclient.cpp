@@ -1973,7 +1973,7 @@ int UdpClient::Calibration(int napr)
     this->DeletePoint();
 
     this->pFazus->Stop_fazus();
-    //SleeperThread::msleep(200);
+    SleeperThread::msleep(200);
     /*if (this->pFazus->Stop_fazus())
     {
         emit error("Ошибка остановки фазуса");
