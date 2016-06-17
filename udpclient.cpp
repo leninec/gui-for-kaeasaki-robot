@@ -1973,7 +1973,7 @@ int UdpClient::Calibration(int napr)
     this->DeletePoint();
 
     this->pFazus->Stop_fazus();
-    SleeperThread::msleep(200);
+    //SleeperThread::msleep(200);
     /*if (this->pFazus->Stop_fazus())
     {
         emit error("Ошибка остановки фазуса");
@@ -1985,7 +1985,7 @@ int UdpClient::Calibration(int napr)
     Data.append("64;");
     this->SendCommand(Data,"shiftsave","Ошибка сохранения смещения после калибровки",1);
     // координаты смещения сохранены на роботе но при загрузке точек используем обычное смещение надо сохранить текущие координаты кроме z
-   // this->Here(&(this->fXShift),&(this->fYShift),&(this->fZShift),&(this->fOShift),&(this->fAShift),&(this->fTShift));
+
     // сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
     this->fXShift = fxcoord1 - sdvigX;
     this->fYShift = fycoord1 - sdvigY;
@@ -1994,16 +1994,11 @@ int UdpClient::Calibration(int napr)
     this->fAShift = 180;
     this->fTShift  = 0;
     // присохранение координаты через here углы сильно пляшут
-    Data.clear();
-    Data.append("calibration finish");
-    this->vPpriemMessage.append(Data);
+    QByteArray message;
+    message.clear();
+    message.append("calibration finish");
+    this->vPpriemMessage.append(message);
     emit answer();
-
-   // Data.clear();
-  //  Data.append(QString::number(this->fXShift)+";"+QString::number(this->fYShift)+";"+QString::number(this->fZShift)+";"+QString::number(this->fOShift)+";"+QString::number(this->fAShift)+";"+QString::number(this->fTShift)+";"+"координаты начальной точки после калибровки");
-  //  this->vPpriemMessage.append(Data);
-  //  emit answer();
-
     return 0;
 }
 int UdpClient::Orientation180(int del)
