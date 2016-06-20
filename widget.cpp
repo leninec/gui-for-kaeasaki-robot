@@ -2110,7 +2110,7 @@ void Widget::NextPageButton()
 }
 void Widget::on_stackedWidget_currentChanged(int arg1)
 {
-    rs10nComand comand;
+  /*  rs10nComand comand;
 
     switch (arg1) // следить за индексами вкладок, могут убежать
     {
@@ -2144,6 +2144,7 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     default:
         break;
     }
+    */
 }
 void Widget::CloseButtonMotion()
 {

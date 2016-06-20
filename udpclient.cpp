@@ -1475,7 +1475,7 @@ int UdpClient::Calibration(int napr)
 
     QVector <int> viAmpMax;
     QByteArray Data;
-
+/*
     if(!(this->pFazus))
     {
         emit error("Ошибка работы с фазусом");
@@ -2088,13 +2088,13 @@ int UdpClient::Calibration(int napr)
         emit error("Ошибка остановки фазуса");
     }
     */
-
+/*
     // закончили калибровку и теперь на роботе сохраняем точку чтобы не потерять результат калибровки
     Data.clear();
     Data.append("64;");
     this->SendCommand(Data,"shiftsave","Ошибка сохранения смещения после калибровки",1);
     // координаты смещения сохранены на роботе но при загрузке точек используем обычное смещение надо сохранить текущие координаты кроме z
-
+*/
     // сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
     this->fXShift = fxcoord1 - sdvigX;
     this->fYShift = fycoord1 - sdvigY;
