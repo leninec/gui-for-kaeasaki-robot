@@ -126,6 +126,7 @@ private:
 
   //  QVector <QByteArray>vPriemCoordinat;
     QVector <rs10nComand> vectorComand;
+    QMutex vectorComand_mutex;
     QVector <QByteArray>vPpriemMessage;
     QMutex vPpriemMessage_mutex;
     QVector <stCoord> vectorC;

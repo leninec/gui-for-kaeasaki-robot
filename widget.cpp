@@ -1343,17 +1343,19 @@ void Widget::OpenFileT(QString fileName)
     if (fileName == "0")
     {
         QString nameFoldertrace = ".\\traectori";
+     //   fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
+     //                                           tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
-                                                tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
+                                                tr(" Text Files (*.dat *.txt);;C++ Files (*.cpp *.h)"));
 
     }
     if (fileName != "")
     {
         rs10nComand comand;
-        comand.instruction=openFileT;
+        comand.instruction = openFileT;
         comand.name7 = fileName;
         this->udpClient->AddComand(comand);
-        this->bMassivButton[bgetUzk]= true;
+        this->bMassivButton[bgetUzk] = true;
         this->SetButtonControl();
         fileName = fileName.split("/").last();
         ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]" + " Открыт файл с траекторией " + fileName);
@@ -2110,7 +2112,7 @@ void Widget::NextPageButton()
 }
 void Widget::on_stackedWidget_currentChanged(int arg1)
 {
-  /*  rs10nComand comand;
+    rs10nComand comand;
 
     switch (arg1) // следить за индексами вкладок, могут убежать
     {
@@ -2144,7 +2146,7 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     default:
         break;
     }
-    */
+
 }
 void Widget::CloseButtonMotion()
 {

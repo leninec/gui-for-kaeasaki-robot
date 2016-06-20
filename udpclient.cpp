@@ -278,11 +278,19 @@ int UdpClient::Process()
            this->bSdvig = false;
            this->Sdvig();
         }*/
-        if (this->vectorComand.size() !=0)
+        int i;
+        {
+            QMutexLocker locker(&vectorComand_mutex);
+            i = this->vectorComand.size();
+        }
+        if (i !=0)
         {
             rs10nComand comand;
-            comand = this->vectorComand[0];
-            this->vectorComand.removeFirst();
+            {
+                QMutexLocker locker(&vectorComand_mutex);
+                comand = this->vectorComand[0];
+                this->vectorComand.removeFirst();
+            }
             QByteArray data;
             // if (comand.instruction)
             switch (comand.instruction) {
@@ -522,6 +530,7 @@ int UdpClient::Process()
                 break;
             }
         }
+
     }
     emit finished();
     return 0;
@@ -679,13 +688,12 @@ int UdpClient::ReadData()
     buffer.clear();
     return 0;
 }
-int UdpClient::SendCommand(
-        QByteArray baCommand,
-        QString sAnswer,
-        QString sError,
-        int par,                //0 - delete message, 1 - only read message
-        int timeout,
-        int nSend)
+int UdpClient::SendCommand(QByteArray baCommand,
+                           QString sAnswer,
+                           QString sError,
+                           int par,                //0 - delete message, 1 - only read message
+                           int timeout,
+                           int nSend)
 {
     if (this->SendData(baCommand,timeout,nSend)) // не было ответа в течении таймаута - прекращем функцию
     {
@@ -873,6 +881,7 @@ void UdpClient::AddComand(rs10nComand command )
 {
     if (vectorComand.size()<4)
     {
+        QMutexLocker locker(&vectorComand_mutex);
         this->vectorComand.append(command);
     }
     else
@@ -1469,13 +1478,15 @@ int UdpClient::Calibration(int napr)
     int   itimeY2 = 0;
     int   countZnak = 0; // накопитель для определения направления движения
     float fZmax = 100;
+    float sdvigX = 0;
+    float sdvigY = 0;
 
     QString nameFolder =  ".\\system-nastr\\exo1-1-";
     QString nameNastr;
 
     QVector <int> viAmpMax;
     QByteArray Data;
-/*
+    /*
     if(!(this->pFazus))
     {
         emit error("Ошибка работы с фазусом");
@@ -2044,10 +2055,10 @@ int UdpClient::Calibration(int napr)
     //  Находимся в максимуме, мерим время
     this->pFazus->one_shot_pin(nameNastr.toUtf8().data(),&itimeX2); // померили время прихода эхо сигнала в 4 точке
     // создаем правильную точоку начала
-    float sdvigX = ((itimeY1-itimeY2)/2)/2;
+    sdvigX = ((itimeY1-itimeY2)/2)/2;
     sdvigX=sdvigX*1500/100/1000;    // пересчитываем отсчеты в мм смещения
 
-    float sdvigY = ((itimeX1-itimeX2)/2)/2;
+    sdvigY = ((itimeX1-itimeX2)/2)/2;
     sdvigY=sdvigY*1500/100/1000;
 
     Data.clear();
@@ -2076,25 +2087,19 @@ int UdpClient::Calibration(int napr)
     if(this->SendCommand(Data,"movestart"," Ошибка начала движения",1)) return 1;
     if (this->WaitingMoveFinish()) return 1;
     this->DeletePoint();
+    */
     if ( this->pFazus->Stop_fazus())
     {
         SleeperThread::msleep(200);
         this->pFazus->Stop_fazus();
     }
 
-    // SleeperThread::msleep(200);
-    /*if (this->pFazus->Stop_fazus())
-    {
-        emit error("Ошибка остановки фазуса");
-    }
-    */
-/*
     // закончили калибровку и теперь на роботе сохраняем точку чтобы не потерять результат калибровки
     Data.clear();
     Data.append("64;");
     this->SendCommand(Data,"shiftsave","Ошибка сохранения смещения после калибровки",1);
     // координаты смещения сохранены на роботе но при загрузке точек используем обычное смещение надо сохранить текущие координаты кроме z
-*/
+
     // сохранили место после калибровки в смещениии.  Z координату надо будет поменять после нажатия кнопки начальная тчока
     this->fXShift = fxcoord1 - sdvigX;
     this->fYShift = fycoord1 - sdvigY;
@@ -2142,7 +2147,7 @@ int UdpClient::Orientation180(int del)
     this->Here();
     {
         QMutexLocker locker(&vPpriemMessage_mutex);
-         i = this->vPpriemMessage.size();
+        i = this->vPpriemMessage.size();
     }
     if (i == 0 )
     {
