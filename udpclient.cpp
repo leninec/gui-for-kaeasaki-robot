@@ -579,16 +579,11 @@ QByteArray  UdpClient::ReadMessage()
         {
             mess = 0;
             // emit error(" Буфер сообщений пуст");
-            return 0;
+            return 0; // будем вызывать это функцию пока она не вернет 0. Внимание
+            // тогда важно не положить в вектор 0
         }
-
         mess = this->vPpriemMessage[0];
         this->vPpriemMessage.removeFirst();
-        // SleeperThread::msleep(100);
-        if (this->vPpriemMessage.size() != 0)  // если что-то забыли в буфере сообщений - прочитать
-        {
-            emit answer();
-        }
     }
     return mess;
 

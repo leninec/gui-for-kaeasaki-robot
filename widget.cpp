@@ -466,11 +466,13 @@ void Widget::SendComand()
 void Widget::ReadAnswer()
 {
     int flag = 1; // если сообщения обработанно - ставим флаг ноль и не выводим его. Если флаг остался один - выводим принятое сообщение
+
     data = QDateTime::currentDateTime();
-    // tempName = "F:\\prog qt\\NEWWW\\WIN\\VOR7file\\voronezh\\def" + data.toString("HH-mm-dd-MM-yy");
+
     QFont qFont;
     QString str(this->udpClient->ReadMessage());
-    if(str != 0)
+     // if(str != 0)
+    while (str != 0)
     {
         str.replace(" ", "");// стираем пробелы иначе плохо опознаются ответы
         /**/if (str.contains("signal4set",Qt::CaseInsensitive))
@@ -925,6 +927,8 @@ void Widget::ReadAnswer()
         {
             ui->plainTextEditServis->appendPlainText("["+data.toString("HH:mm")+"] "  + str);
         }
+        str.clear();
+        str.append(this->udpClient->ReadMessage());
     }
 }
 void Widget::Pump()
