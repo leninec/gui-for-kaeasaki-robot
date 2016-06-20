@@ -246,14 +246,20 @@ int UdpClient::Process()
                             {
                                 qbM.append("контроль окончен");
                             }
-                            this->vPpriemMessage.append(qbM);
+                            {
+                                QMutexLocker locker(&vPpriemMessage_mutex);
+                                this->vPpriemMessage.append(qbM);
+                            }
                             emit answer();   // создали сообщения для индикации о завершении контроля
                         }
                         buffer.clear();
                     }
                     else
                     {
-                        this->vPpriemMessage.append(buffer);
+                        {
+                            QMutexLocker locker(&vPpriemMessage_mutex);
+                            this->vPpriemMessage.append(buffer);
+                        }
                         emit answer();
                         buffer.clear();
                     }
@@ -331,7 +337,10 @@ int UdpClient::Process()
                 {
                     data.clear();
                     data.append("не удалось начать контроль");
-                    this->vPpriemMessage.append(data);
+                    {
+                        QMutexLocker locker(&vPpriemMessage_mutex);
+                        this->vPpriemMessage.append(data);
+                    }
                     emit answer();
                 }
                 break;
@@ -364,14 +373,20 @@ int UdpClient::Process()
                 {
                     QByteArray qbM;
                     qbM.append("Робот не отвечает");
-                    this->vPpriemMessage.append(qbM);
+                    {
+                        QMutexLocker locker(&vPpriemMessage_mutex);
+                        this->vPpriemMessage.append(qbM);
+                    }
                     emit answer();
                 }
                 else
                 {
                     QByteArray qbM;
                     qbM.append("Робот отвечает ");
-                    this->vPpriemMessage.append(qbM);
+                    {
+                        QMutexLocker locker(&vPpriemMessage_mutex);
+                        this->vPpriemMessage.append(qbM);
+                    }
                     emit answer();
                 }
                 break;
@@ -402,7 +417,10 @@ int UdpClient::Process()
                     //ошибка калибровки. Ошибка будет выведена через мс бокс, нужно отправить сообщение чтобы разблокировать интерфейс
                     QByteArray qbM;
                     qbM.append("calibrovka-error");
-                    this->vPpriemMessage.append(qbM);
+                    {
+                        QMutexLocker locker(&vPpriemMessage_mutex);
+                        this->vPpriemMessage.append(qbM);
+                    }
                     emit answer();
                 }
                 break;
@@ -510,7 +528,10 @@ int UdpClient::Process()
 }
 void UdpClient::ClearData()
 {
-    this->vPpriemMessage.clear();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.clear();
+    }
     this->vectorC.clear();
 }
 int UdpClient::SendData(QByteArray data, int timeout,int nSend)
@@ -548,7 +569,30 @@ int UdpClient::SendData(QByteArray data, int timeout,int nSend)
 }
 QByteArray  UdpClient::ReadMessage()
 {
-    SleeperThread::msleep(100);
+
+    QByteArray mess;
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        // vPpriemMessage_mutex.lock();
+
+        if (this->vPpriemMessage.isEmpty())
+        {
+            mess = 0;
+            // emit error(" Буфер сообщений пуст");
+            return 0;
+        }
+
+        mess = this->vPpriemMessage[0];
+        this->vPpriemMessage.removeFirst();
+        // SleeperThread::msleep(100);
+        if (this->vPpriemMessage.size() != 0)  // если что-то забыли в буфере сообщений - прочитать
+        {
+            emit answer();
+        }
+    }
+    return mess;
+
+    /*  SleeperThread::msleep(100);
     QByteArray mess;
     if (this->vPpriemMessage.isEmpty())
     {
@@ -565,6 +609,8 @@ QByteArray  UdpClient::ReadMessage()
         emit answer();
     }
     return mess;
+
+    */
 }
 int UdpClient::ReadData()
 {
@@ -592,7 +638,10 @@ int UdpClient::ReadData()
     }
     if (buffer.indexOf("No signal 14") != -1)
     {
-        this->vPpriemMessage.append(buffer);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(buffer);
+        }
         buffer.clear();
         emit answer();
         return 1;
@@ -614,14 +663,24 @@ int UdpClient::ReadData()
                 qbM.append("контроль окончен");
                 //  emit error("приняли move finish");
             }
-            this->vPpriemMessage.append(qbM);
+            {
+                QMutexLocker locker(&vPpriemMessage_mutex);
+                this->vPpriemMessage.append(qbM);
+            }
+
             emit answer();   // создали сообщения для индикации о завершении контроля
         }
-        this->vPpriemMessage.append(buffer);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(buffer);
+        }
         buffer.clear();
         return 0;
     }
-    this->vPpriemMessage.append(buffer);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(buffer);
+    }
     buffer.clear();
     return 0;
 }
@@ -643,30 +702,33 @@ int UdpClient::SendCommand(
         //emit error("Ошибка чтения ответа, ждем " + sAnswer);
         return 1;  /// бляяя если все не работает смотреть тут!
     }
-    if(int i = this->vPpriemMessage.size())
     {
-        QString str(this->vPpriemMessage[i-1]);
-        str.replace(" ", "");
-        if(str.contains(sAnswer,Qt::CaseInsensitive))
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        if(int i = this->vPpriemMessage.size())
         {
-            if (par)
+            QString str(this->vPpriemMessage[i-1]);
+            str.replace(" ", "");
+            if(str.contains(sAnswer,Qt::CaseInsensitive))
             {
-                emit answer();
+                if (par)
+                {
+                    emit answer();
+                }
+                else
+                {
+                    this->vPpriemMessage.remove(i-1);
+                }
             }
             else
             {
-                this->vPpriemMessage.remove(i-1);
+                emit error(sError +" "+ str);
+                return 1;
             }
         }
         else
         {
-            emit error(sError +" "+ str);
-            return 1;
+            emit error(sError + "2");
         }
-    }
-    else
-    {
-        emit error(sError + "2");
     }
     return 0;
 }
@@ -795,8 +857,13 @@ void UdpClient::Sdvig()
     {
         // поидее правильный ответ помещен в vPpriemMessage  по факту туда могли придти еще данные!!!
         // сделать возврат нужного ответа
-        int i = this->vPpriemMessage.size();
-        QString str(this->vPpriemMessage[i-1]);
+        QString str;
+
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            int i = this->vPpriemMessage.size();
+            str.append(this->vPpriemMessage[i-1]);
+        }
         QStringList strList = str.split(";");
         this->fXShift=strList[0].toDouble();
         this->fYShift=strList[1].toDouble();
@@ -885,7 +952,10 @@ void UdpClient::createPipe(QString pipeName)
     if(hNamedPipe == INVALID_HANDLE_VALUE)
     {
         qbM.append("CreateFile: Error ");
-        this->vPpriemMessage.append(qbM);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(qbM);
+        }
         emit answer();
         // ui->filePlainTextEdit->appendPlainText("CreateFile: Error ");
     }
@@ -937,13 +1007,16 @@ int UdpClient::getRS10parametr()
     {
         return 1;
     }
-    int i = this->vPpriemMessage.size();
-    if (i ==0 )
     {
-        emit error("Потерял данные о настройках робота в векторее сообщений ");
-        return 1;
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        int i = this->vPpriemMessage.size();
+        if (i ==0 )
+        {
+            emit error("Потерял данные о настройках робота в векторее сообщений ");
+            return 1;
+        }
+        Data = vPpriemMessage[i-1];
     }
-    Data = vPpriemMessage[i-1];
     QString str(Data);
     QStringList message = str.split(";");
     int q = message.size();
@@ -993,13 +1066,18 @@ int UdpClient::getPointCoordint(int nP, QString timeoutText, float *x,float *y,f
     {}
     else
     {
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
         {
-            emit error("Потерял данные в векторее сообщений получение точек");
-            return 1;
+            QMutexLocker locker(&vPpriemMessage_mutex);
+
+
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
+            {
+                emit error("Потерял данные в векторее сообщений получение точек");
+                return 1;
+            }
+            Data = this->vPpriemMessage[i-1];
         }
-        Data = this->vPpriemMessage[i-1];
         QString str(Data);
         QStringList message = str.split(";");
         *x = message[0].toFloat();
@@ -1019,15 +1097,18 @@ int UdpClient::UploadShift()
     {
         return 1;
     }
-    int i = this->vPpriemMessage.size();
-    if (i ==0 )
     {
-        emit error("Потерял данные в векторее сообщений");
-        return 1;
-    }
-    Data = this->vPpriemMessage[i-1];
-    // размер 1 а индекс первого ноль
+        QMutexLocker locker(&vPpriemMessage_mutex);
 
+        int i = this->vPpriemMessage.size();
+        if (i ==0 )
+        {
+            emit error("Потерял данные в векторее сообщений");
+            return 1;
+        }
+        Data = this->vPpriemMessage[i-1];
+        // размер 1 а индекс первого ноль
+    }
     QString str(Data);
     if (!(str.contains("shift",Qt::CaseInsensitive)))
     {
@@ -1083,7 +1164,11 @@ int UdpClient::OpenFileT(QString nameFile)
     // emit error(" радиус " + QString::number(this->rHub) +" шаг = " + QString::number(this->fStepAngle));
     QByteArray mes;
     mes.append("trajectory");
-    this->vPpriemMessage.append(mes);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(mes);
+    }
+
     emit answer();
     return 0;
 }
@@ -1162,12 +1247,20 @@ int UdpClient::HereShift() // функция, берущая текущую ко
 
     QByteArray qbM;
     qbM.append("start posithion");
-    this->vPpriemMessage.append(qbM);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(qbM);
+    }
+
     emit answer();
 
     qbM.clear();
     qbM.append(stroka + "задаваемое смещение для начальной точки через сохраненное после калибровки смещение");
-    this->vPpriemMessage.append(qbM);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(qbM);
+    }
+
     emit answer();
 
     return 0;
@@ -1192,13 +1285,16 @@ int UdpClient::Here(float *x,float *y,float *z)
     int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
     if ( er ==0 )
     {
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
+        QMutexLocker locker(&vPpriemMessage_mutex);
         {
-            emit error("Потерял данные в векторее сообщений определение координаты");
-            return 1;
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
+            {
+                emit error("Потерял данные в векторее сообщений определение координаты");
+                return 1;
+            }
+            Data = this->vPpriemMessage[i-1];
         }
-        Data = this->vPpriemMessage[i-1];
         QString str(Data);
         QStringList message = str.split(";");
         *x = message[0].toFloat();
@@ -1214,13 +1310,17 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
     int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
     if ( er ==0 )
     {
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
         {
-            emit error("Потерял данные в векторее сообщений определение координаты");
-            return 1;
+            QMutexLocker locker(&vPpriemMessage_mutex);
+
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
+            {
+                emit error("Потерял данные в векторее сообщений определение координаты");
+                return 1;
+            }
+            Data = this->vPpriemMessage[i-1];
         }
-        Data = this->vPpriemMessage[i-1];
         QString str(Data);
         QStringList message = str.split(";");
         *x = message[0].toFloat();
@@ -1245,24 +1345,28 @@ int UdpClient::TestHere()
     if (this->socket->waitForReadyRead(3000))
     {
         this->ReadData();
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
         {
-            return 1;
-        }
-        Data = this->vPpriemMessage[i-1];
-        QString str(Data);
-        if(str.contains("here",Qt::CaseInsensitive))
-        {
-            this->vPpriemMessage.removeFirst();
-            //  QStringList message = str.split(";");
-            // *x = message[0].toFloat();
-            // *y = message[1].toFloat();
-            // *z = message[2].toFloat();
-        }
-        else
-        {
-            return 1;
+            QMutexLocker locker(&vPpriemMessage_mutex);
+
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
+            {
+                return 1;
+            }
+            Data = this->vPpriemMessage[i-1];
+            QString str(Data);
+            if(str.contains("here",Qt::CaseInsensitive))
+            {
+                this->vPpriemMessage.removeFirst();
+                //  QStringList message = str.split(";");
+                // *x = message[0].toFloat();
+                // *y = message[1].toFloat();
+                // *z = message[2].toFloat();
+            }
+            else
+            {
+                return 1;
+            }
         }
         this->TestMotor(); // Заодно проверяем включен ли двигатель
         this->GetErrorRobot() ; // и ошибки
@@ -1339,7 +1443,10 @@ int UdpClient::DownloadPoint()
 
     QByteArray qbM;
     qbM.append("finisheddownload");
-    this->vPpriemMessage.append(qbM);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(qbM);
+    }
     emit answer();
     return 0;
 }
@@ -1955,7 +2062,10 @@ int UdpClient::Calibration(int napr)
     Data.append("time Y2 "+QString::number(itimeY2));
     Data.append("сдвиг x "+QString::number(sdvigX));
     Data.append("сдвиг y "+QString::number(sdvigY));
-    this->vPpriemMessage.append(Data);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(Data);
+    }
     emit answer();
 
     QString point1 = "1;"+QString::number(fxcoord1-sdvigX) + ";" + QString::number(fycoord1-sdvigY) + ";" + QString::number(zTmp+100)+";"+QString::number(0 + this->fOinstrShift) + ";180;0;";  // 07.06.16
@@ -1977,7 +2087,7 @@ int UdpClient::Calibration(int napr)
         this->pFazus->Stop_fazus();
     }
 
-   // SleeperThread::msleep(200);
+    // SleeperThread::msleep(200);
     /*if (this->pFazus->Stop_fazus())
     {
         emit error("Ошибка остановки фазуса");
@@ -2001,7 +2111,10 @@ int UdpClient::Calibration(int napr)
     QByteArray message;
     message.clear();
     message.append("calibration finish");
-    this->vPpriemMessage.append(message);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(message);
+    }
     emit answer();
     return 0;
 }
@@ -2030,15 +2143,22 @@ int UdpClient::Orientation180(int del)
     float aTmp = 0;
     float tTmp = 0;
 
+    int i;
     this->Here();
-    int i = this->vPpriemMessage.size();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+         i = this->vPpriemMessage.size();
+    }
     if (i == 0 )
     {
         this->pFazus->Stop_fazus();
         emit error("Потерял данные в векторее сообщений ориентация фланца 1");
         return 1;
     }
-    Data = this->vPpriemMessage[i-1];
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        Data = this->vPpriemMessage[i-1];
+    }
     // размер 1 а индекс первого ноль
 
     QString str(Data);
@@ -2049,8 +2169,10 @@ int UdpClient::Orientation180(int del)
         return 1;
         //не то
     }
-
-    this->vPpriemMessage.clear();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.clear();
+    }
     //  i = this->vPpriemMessage.size();
     //    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
     QStringList strList = str.split(';');
@@ -2078,7 +2200,10 @@ int UdpClient::Orientation180(int del)
     if (this->WaitingMoveFinish()) return 1;
     Data.clear();
     Data.append("orientationfinish");
-    this->vPpriemMessage.append(Data);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(Data);
+    }
 
     //теперь вернем смещение обратно
     stroka.clear();
@@ -2107,7 +2232,10 @@ int UdpClient::DeleteFileDef(QString name)
         er =0;
         QByteArray Data;
         Data.append("filedel");
-        this->vPpriemMessage.append(Data);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(Data);
+        }
         emit answer();
         Data.clear();
         Data.append(9);  // отправляем максиму информацию о том контроль завершен результаты не сохранены
@@ -2133,7 +2261,10 @@ QString UdpClient::SearhIncreace(QString Nastr, int ampLow, int ampMax)
         nameNastr = Nastr + QString::number(increase)+"db.nst";
         ampC = this->pFazus->one_shot(nameNastr.toUtf8().data());
         qbM.append(QString::number(ampC) +" ампл ");
-        this->vPpriemMessage.append(qbM);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(qbM);
+        }
         emit answer();
         if (ampC>256)
         {
@@ -2232,17 +2363,25 @@ int UdpClient::ContinueWork()
 }
 int UdpClient::ResetError()
 {
+    int i;
     QByteArray Data;
     Data.clear();
     Data.append("56;");
     if (this->SendCommand(Data,"error","Ошибка квитирования робота",1)) return 1;
-    int i = this->vPpriemMessage.size();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        i = this->vPpriemMessage.size();
+    }
     if (i == 0 )
     {
         emit error("Потерял данные в векторее сообщений квитирование");
         return 1;
     }
-    Data = this->vPpriemMessage[i-1];
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        Data = this->vPpriemMessage[i-1];
+    }
+
     // размер 1 а индекс первого ноль
 
     QString str(Data);
@@ -2292,7 +2431,10 @@ int UdpClient::GoHome()
     {
         Data.clear();
         Data.append("Робот в стартовой позиции");
-        this->vPpriemMessage.append(Data);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(Data);
+        }
         emit answer();
     }
     return er;
@@ -2320,8 +2462,12 @@ int UdpClient::GetWorkSpace(float *x1,float *y1,float *z1,float *x2,float *y2,fl
     if (this->socket->waitForReadyRead(2000))
     {
         if (this->ReadData()) return 1;
-        int i = this->vPpriemMessage.size();
-        Data = this->vPpriemMessage[i-1];
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            int i = this->vPpriemMessage.size();
+            Data = this->vPpriemMessage[i-1];
+        }
+
         // размер 1 а индекс первого ноль
 
         QString str(Data);
@@ -2350,6 +2496,7 @@ int UdpClient::GetWorkSpace(float *x1,float *y1,float *z1,float *x2,float *y2,fl
 }
 int UdpClient::WaitingMoveFinish()
 {
+    int i = 0;
     if ((this->socket->pendingDatagramSize())==-1)
     {
         if (!(this->socket->waitForReadyRead(40000)))  // ждем move finish
@@ -2384,7 +2531,11 @@ int UdpClient::WaitingMoveFinish()
             return 1;
         }
     }
-    int i = this->vPpriemMessage.size();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        i = this->vPpriemMessage.size();
+    }
+
     if (i ==0 )
     {
         this->pFazus->Stop_fazus();
@@ -2392,7 +2543,11 @@ int UdpClient::WaitingMoveFinish()
         return 1;
     }
     QByteArray Data;
-    Data = this->vPpriemMessage[i-1];
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        Data = this->vPpriemMessage[i-1];
+    }
+
     QString str(Data);
     if (!(str.contains("move finish",Qt::CaseInsensitive)))
     {
@@ -2524,7 +2679,11 @@ void UdpClient::EventTimer()
         this->pFazus->StopDef();
         data.clear();
         data.append("контроль нарушен");
-        this->vPpriemMessage.append(data);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(data);
+        }
+
         emit answer();   // создали сообщения для индикации о завершении контроля
 
         bDef = false;
@@ -2538,16 +2697,26 @@ void UdpClient::EventTimer()
 }
 int UdpClient::GetErrorRobot()
 {
+    int i=0;
     QByteArray data;
     data.append("55;");
     if (this->SendCommand(data,"error","Ошибка получения статуса робота",1))return 1;
-    int i = this->vPpriemMessage.size();
+
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        i = this->vPpriemMessage.size();
+    }
+
     if (i == 0 )
     {
         emit error("Потерял данные в векторее сообщений получения статуса робота");
         return 1;
     }
-    data = this->vPpriemMessage[i-1];
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        data = this->vPpriemMessage[i-1];
+    }
+
     // размер 1 а индекс первого ноль
 
     QString str(data);
@@ -2564,7 +2733,11 @@ int UdpClient::GetErrorRobot()
     {
         data.clear();
         data.append( "Номер ошибки " + str);
-        this->vPpriemMessage.append(data);
+        {
+            QMutexLocker locker(&vPpriemMessage_mutex);
+            this->vPpriemMessage.append(data);
+        }
+
         emit answer();
     }
     return er;
@@ -2579,7 +2752,11 @@ int UdpClient::ResumeAfterError()
     if (this->ContinueWork()) return 1;
 
     data.append( "Ошибка квитированна " );
-    this->vPpriemMessage.append(data);
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(data);
+    }
+
     emit answer();
 
     return 0;
@@ -2587,7 +2764,10 @@ int UdpClient::ResumeAfterError()
 int UdpClient::Init()
 {
     this->vectorC.clear();
-    this->vPpriemMessage.clear();
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.clear();
+    }
     this->bDef = false;
     this->bPipeOpen = false;
     return 0;
@@ -2599,36 +2779,40 @@ int UdpClient::TestMotor()
     int er = this->SendCommand(Data,"motor","Ошибка получения статуса мотора",1);
     if ( er ==0 )
     {
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
         {
-            emit error("Потерял данные в векторее сообщений получение статуса мотора");
-            return 1;
-        }
-        Data = this->vPpriemMessage[i-1];
-        QString str(Data);
-        if (str.contains("motor"))
-        {
-            if(str.contains("on"))
+            QMutexLocker locker(&vPpriemMessage_mutex);
+
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
             {
-                Data.clear();
-                Data.append( " Мотор включен " );
-                this->vPpriemMessage.append(Data);
-                emit answer();
+                emit error("Потерял данные в векторее сообщений получение статуса мотора");
+                return 1;
             }
-            if(str.contains("off"))
+            Data = this->vPpriemMessage[i-1];
+            QString str(Data);
+            if (str.contains("motor"))
             {
-                Data.clear();
-                Data.append( " Мотор  не включен " );
-                this->vPpriemMessage.append(Data);
-                emit answer();
-                return 2;
+                if(str.contains("on"))
+                {
+                    Data.clear();
+                    Data.append( " Мотор включен " );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                }
+                if(str.contains("off"))
+                {
+                    Data.clear();
+                    Data.append( " Мотор  не включен " );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                    return 2;
+                }
             }
-        }
-        else
-        {
-            emit error("Ошибка определения статуса мотора");
-            return 1;
+            else
+            {
+                emit error("Ошибка определения статуса мотора");
+                return 1;
+            }
         }
     }
     return 0;
@@ -2640,72 +2824,77 @@ int UdpClient::GetDigitalInput()
     int er = this->SendCommand(Data,"in10-13","Ошибка получения статуса цифровых входов",1);
     if ( er ==0 )
     {
-        int i = this->vPpriemMessage.size();
-        if (i ==0 )
         {
-            emit error("Потерял данные в векторее сообщений получение статуса цифровых входов");
-            return 1;
-        }
-        Data = this->vPpriemMessage[i-1];
-        QString str(Data);
-        if (str.contains("in10-13"))
-        {
-            QStringList strList = str.split(';');
-            if (strList[0].toInt() == 0)
+            QMutexLocker locker(&vPpriemMessage_mutex);
+
+
+            int i = this->vPpriemMessage.size();
+            if (i ==0 )
             {
-                this->bLevelVanna = true;
-                Data.clear();
-                Data.append( " Достаточный уровень воды в ванне" );
-                this->vPpriemMessage.append(Data);
-                emit answer();
+                emit error("Потерял данные в векторее сообщений получение статуса цифровых входов");
+                return 1;
+            }
+            Data = this->vPpriemMessage[i-1];
+            QString str(Data);
+            if (str.contains("in10-13"))
+            {
+                QStringList strList = str.split(';');
+                if (strList[0].toInt() == 0)
+                {
+                    this->bLevelVanna = true;
+                    Data.clear();
+                    Data.append( " Достаточный уровень воды в ванне" );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                }
+                else
+                {
+                    this->bLevelVanna = false;
+                    Data.clear();
+                    Data.append( "Проверьте уровень воды в ванне" );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                }
+                //if (strList[1].toInt() == 0) \\15 02 16 сигнал приходит инверсный
+                if (strList[1].toInt())
+                {
+                    this->bLevelBak = true;
+                    Data.clear();
+                    Data.append( " Достаточный уровень воды в баке" );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                }
+                else
+                {
+                    this->bLevelBak = false;
+                    Data.clear();
+                    Data.append( "Проверьте уровень воды в баке" );
+                    this->vPpriemMessage.append(Data);
+                    emit answer();
+                }
+                if (strList[2].toInt() == 0)
+                {
+                    //     this->bLevelBak = false;
+                    // здесь можно узнать о состоянии насоса и далее
+                }
+                else
+                {
+                    //        this->bLevelBak = true;
+                }
+                if (strList[3].toInt() == 0)
+                {
+                    //      this->bLevelBak = false;
+                }
+                else
+                {
+                    //      this->bLevelBak = true;
+                }
             }
             else
             {
-                this->bLevelVanna = false;
-                Data.clear();
-                Data.append( "Проверьте уровень воды в ванне" );
-                this->vPpriemMessage.append(Data);
-                emit answer();
+                emit error("Ошибка определения статуса цифровых входов");
+                return 1;
             }
-            //if (strList[1].toInt() == 0) \\15 02 16 сигнал приходит инверсный
-            if (strList[1].toInt())
-            {
-                this->bLevelBak = true;
-                Data.clear();
-                Data.append( " Достаточный уровень воды в баке" );
-                this->vPpriemMessage.append(Data);
-                emit answer();
-            }
-            else
-            {
-                this->bLevelBak = false;
-                Data.clear();
-                Data.append( "Проверьте уровень воды в баке" );
-                this->vPpriemMessage.append(Data);
-                emit answer();
-            }
-            if (strList[2].toInt() == 0)
-            {
-                //     this->bLevelBak = false;
-                // здесь можно узнать о состоянии насоса и далее
-            }
-            else
-            {
-                //        this->bLevelBak = true;
-            }
-            if (strList[3].toInt() == 0)
-            {
-                //      this->bLevelBak = false;
-            }
-            else
-            {
-                //      this->bLevelBak = true;
-            }
-        }
-        else
-        {
-            emit error("Ошибка определения статуса цифровых входов");
-            return 1;
         }
     }
     return 0;

@@ -127,6 +127,7 @@ private:
   //  QVector <QByteArray>vPriemCoordinat;
     QVector <rs10nComand> vectorComand;
     QVector <QByteArray>vPpriemMessage;
+    QMutex vPpriemMessage_mutex;
     QVector <stCoord> vectorC;
     QByteArray qbaTrajectory;
     void TestPipe();

@@ -123,7 +123,9 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonNastr,SIGNAL(clicked()),this,SLOT(GetNastr()));
     // connect(fazusD,SIGNAL(scan()),this,SLOT(ShowScan()));
     connect(ui->pushButtonSend,SIGNAL(clicked()),this,SLOT(SendComand()));
-    connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()));
+   // connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()));
+    connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()),Qt::QueuedConnection);
+
     connect(ui->pushButtonPump,SIGNAL(clicked()),this,SLOT(Pump()));
     connect(ui->pushButtonSliv,SIGNAL(clicked()),this,SLOT(Sliv()));
     connect(ui->pushButtonStop,SIGNAL(clicked()),this,SLOT(Stop()));
