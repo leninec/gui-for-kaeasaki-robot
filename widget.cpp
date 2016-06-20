@@ -258,19 +258,7 @@ Widget::Widget(QWidget *parent) :
             QDir().mkdir(".\\_BD_DEF\\");
 
         }
-    /*if (QFile::exists(".\\_BD_DEF\\"))
-    {
-        ui->plainTextEdit->appendPlainText("Есть куда класть дефектограммы");
-    }
-    else
-    {
-          ui->plainTextEdit->appendPlainText("не куда класть дефектограммы");
-          QFile file("..\\_BD_DEF\\");
-          file.open(QIODevice::WriteOnly | QIODevice::Text);
-         // file.write(temp); // записываем весь массив обратно в файл
-          file.close();
-    }
-    */
+
     this->ItemTitle = new QListWidgetItem;
     ItemTitle->setText("-------Основные этапы контроля-------");
     ItemTitle->setFlags(Qt::ItemIsUserCheckable); // вообще запрещает тыкать в надпись мышой, а не только менять галочку

@@ -1106,7 +1106,7 @@ int UdpClient::HereShift() // функция, берущая текущую ко
     this->fZShift = z;
 
 
-/*
+    /*
     this->Here();
     int i = this->vPpriemMessage.size();
     if (i ==0 )
@@ -1710,7 +1710,7 @@ int UdpClient::Calibration(int napr)
     {
         this->pFazus->Stop_fazus();
         return 1;
-    }   
+    }
     if (this->MoveZ(fZmax)) return 1;
     Data.clear();
     Data.append("16;");
@@ -1971,9 +1971,13 @@ int UdpClient::Calibration(int napr)
     if(this->SendCommand(Data,"movestart"," Ошибка начала движения",1)) return 1;
     if (this->WaitingMoveFinish()) return 1;
     this->DeletePoint();
+    if ( this->pFazus->Stop_fazus())
+    {
+        SleeperThread::msleep(200);
+        this->pFazus->Stop_fazus();
+    }
 
-    this->pFazus->Stop_fazus();
-    SleeperThread::msleep(200);
+   // SleeperThread::msleep(200);
     /*if (this->pFazus->Stop_fazus())
     {
         emit error("Ошибка остановки фазуса");
