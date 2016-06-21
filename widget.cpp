@@ -72,6 +72,8 @@ Widget::Widget(QWidget *parent) :
     this->bMassivButton[bpark] = true;
     this->SetButtonControl();
 
+    this->bFlagMoveMode = false;
+
     this->ui->plainTextEdit->setMaximumBlockCount(10);
     this->ui->plainTextEditServis->setMaximumBlockCount(100);
     this->HideTab();
@@ -2117,31 +2119,55 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     switch (arg1) // следить за индексами вкладок, могут убежать
     {
     case 1:
+       /* ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+        comand.instruction = changeMoveMode;
+        comand.parametr1 = 0;
+        this->udpClient->AddComand(comand);
+        //на первой вкладке выбор траектории - режим переключать не нужно
+        */
+        break;
+    case 2:
+        if (bFlagMoveMode)
+        {
         ui->plainTextEdit->appendPlainText(" Основной режим движения ");
         comand.instruction = changeMoveMode;
         comand.parametr1 = 0;
         this->udpClient->AddComand(comand);
+        bFlagMoveMode = false;
+        //вторая вкладка - ориентация (калибровка) нужен основной режим
+        }
         break;
     case 3:
+        if (!bFlagMoveMode)
+        {
         ui->plainTextEdit->appendPlainText(" Режим по дуге езденья ");
         comand.instruction = changeMoveMode;
         comand.parametr1 = 1;
         this->udpClient->AddComand(comand);
         comand.instruction = setCircle; // сразу создаем траекторию новую
         this->udpClient->AddComand(comand);
+        bFlagMoveMode = true;
+        }
         break;
     case 4:
+        /*
         ui->plainTextEdit->appendPlainText(" Основной режим движения ");
         comand.instruction = changeMoveMode;
         comand.parametr1 = 0;
         this->udpClient->AddComand(comand);
+        //вкладка 4 выход в начальную точку - всеравно в каком режиме находимся
+        */
         break;
     case 5:
+        if(bFlagMoveMode)
+        {
         ui->plainTextEdit->appendPlainText(" Основной режим движения ");
         comand.instruction = changeMoveMode;
         comand.parametr1 = 0;
         this->udpClient->AddComand(comand);
         //Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
+        bFlagMoveMode = false;
+        }
         break;
     default:
         break;

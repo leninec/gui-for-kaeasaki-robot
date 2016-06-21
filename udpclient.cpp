@@ -879,7 +879,7 @@ void UdpClient::Sdvig()
 }
 void UdpClient::AddComand(rs10nComand command )
 {
-    if (vectorComand.size()<4)
+    if (vectorComand.size()<2)
     {
         QMutexLocker locker(&vectorComand_mutex);
         this->vectorComand.append(command);
@@ -1486,7 +1486,7 @@ int UdpClient::Calibration(int napr)
 
     QVector <int> viAmpMax;
     QByteArray Data;
-    /*
+
     if(!(this->pFazus))
     {
         emit error("Ошибка работы с фазусом");
@@ -2087,7 +2087,7 @@ int UdpClient::Calibration(int napr)
     if(this->SendCommand(Data,"movestart"," Ошибка начала движения",1)) return 1;
     if (this->WaitingMoveFinish()) return 1;
     this->DeletePoint();
-    */
+
     if ( this->pFazus->Stop_fazus())
     {
         SleeperThread::msleep(200);

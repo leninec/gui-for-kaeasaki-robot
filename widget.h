@@ -33,7 +33,7 @@ signals:
 public slots:
     void ErrorHandlerF(QString serr);
     void ErrorHandlerUDP(QString serr);
-    int GetNastr();
+    int  GetNastr();
     void ShowScan();
     void SendComand();
     void ReadAnswer();
@@ -118,6 +118,7 @@ private slots:
 private:
     bool bReadyControl;
     bool bMassivButton[13];
+    bool bFlagMoveMode;
     QString nameFolder ;
     QByteArray encodedComment;
     bool bRepeatControl;  // флаг чтобы правильно открывать и закрывать кнопки при повторном контроле
