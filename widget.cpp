@@ -2222,7 +2222,7 @@ void Widget::OpenButtonMotion()
     ui->pushButtonXmMove->setEnabled(true);
     ui->pushButtonXmMove_2->setEnabled(true);
     ui->pushButtonXpMove_2->setEnabled(true);
-    ui->pushButtonXpMove_2->setEnabled(true);
+    ui->pushButtonYpMove_2->setEnabled(true);
     ui->pushButtonYmMove_2->setEnabled(true);
     ui->pushButtonXpMove->setEnabled(true);
     ui->pushButtonYmMove->setEnabled(true);

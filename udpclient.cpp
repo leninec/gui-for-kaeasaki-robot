@@ -1408,6 +1408,8 @@ int UdpClient::DeletePoint()
 }
 int UdpClient::DownloadPoint()
 {
+    this->ChangeMoveMode(0);  // принудительно переходим в основной режим движения перед загрузкой тчоек
+   SleeperThread::msleep(5);   // чтобы не загрузить точки для контроля в режим по дугу
     this->DeletePoint(); //при стирании точек  теперь не удаляется матрица смещения
     int j = 0;
     int count = 0;            // Количество строчек в файле

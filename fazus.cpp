@@ -157,7 +157,7 @@ int fazus::Process()    // дефектоскопим.
                         }
                     }
                     if ((this->max_ampCh1S1) > (this->strob_can[0].am_op)) // амплитуда максимума в опорном стробе  должна быть через table_x
-                    //if ((this->tabl_x[this->max_ampCh1S1]) > (this->strob_can[0].am_op))
+                        //if ((this->tabl_x[this->max_ampCh1S1]) > (this->strob_can[0].am_op))
                     {
                         this->t1c1s1 = tmp_time; // подменяем время начала развертки  если есть сигнал в опорном стробе
                     }
@@ -504,32 +504,33 @@ void fazus::Nastr(QString fileName)
             this->infoScan[47]=(int(this->strob_can[1].cc[0]*100)&0x000000FF); // задержка 1 строба второго канала относителньо опорного
             this->infoScan[48]=(int(this->strob_can[1].cc[0]*100)&0x0000FF00)>>8;
 
-            this->infoScan[70]=(this->cnl_dt[0].can_izl&0x000000FF);  //номер излучателя 1 канал
-                       this->infoScan[71]=(this->cnl_dt[0].can_prm&0x000000FF);
 
-                       this->infoScan[75]=(this->cnl_dt[0].i_n_per&0x000000FF); // число периодов 1 канал
 
-                       this->infoScan[76]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[77]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x0000FF00)>>8;
-                       this->infoScan[78]=(int((this->cnl_dt[0].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[79]=(int((this->cnl_dt[0].d_usil_can)*100)&0x0000FF00)>>8;
-                       this->infoScan[80]=(int((this->cnl_dt[0].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[81]=(int((this->cnl_dt[0].d_st_rob)*100)&0x0000FF00)>>8;
+            this->infoScan[82]=(this->cnl_dt[1].can_izl&0x000000FF);  //номер излучателя 2 канал
+            this->infoScan[83]=(this->cnl_dt[1].can_prm&0x000000FF);
 
-                       this->infoScan[82]=(this->cnl_dt[1].can_izl&0x000000FF);  //номер излучателя 2 канал
-                       this->infoScan[83]=(this->cnl_dt[1].can_prm&0x000000FF);
+            this->infoScan[87]=(this->cnl_dt[1].i_n_per&0x000000FF); // число периодов 2 канал
 
-                       this->infoScan[87]=(this->cnl_dt[1].i_n_per&0x000000FF); // число периодов 2 канал
+            this->infoScan[88]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
+            this->infoScan[89]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x0000FF00)>>8;
 
-                       this->infoScan[88]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[89]=(int((this->cnl_dt[1].d_chast_gen)*100)&0x0000FF00)>>8;
+            this->infoScan[90]=(int((this->cnl_dt[1].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
+            this->infoScan[91]=(int((this->cnl_dt[1].d_usil_can)*100)&0x0000FF00)>>8;
 
-                       this->infoScan[90]=(int((this->cnl_dt[1].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[91]=(int((this->cnl_dt[1].d_usil_can)*100)&0x0000FF00)>>8;
-
-                       this->infoScan[92]=(int((this->cnl_dt[1].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
-                       this->infoScan[93]=(int((this->cnl_dt[1].d_st_rob)*100)&0x0000FF00)>>8;
+            this->infoScan[92]=(int((this->cnl_dt[1].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
+            this->infoScan[93]=(int((this->cnl_dt[1].d_st_rob)*100)&0x0000FF00)>>8;
         }
+        this->infoScan[70]=(this->cnl_dt[0].can_izl&0x000000FF);  //номер излучателя 1 канал
+        this->infoScan[71]=(this->cnl_dt[0].can_prm&0x000000FF);
+
+        this->infoScan[75]=(this->cnl_dt[0].i_n_per&0x000000FF); // число периодов 1 канал
+
+        this->infoScan[76]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x000000FF);  // частота генератора умножаем на 100 чтобы передать в двух байтах с дробной частью
+        this->infoScan[77]=(int((this->cnl_dt[0].d_chast_gen)*100)&0x0000FF00)>>8;
+        this->infoScan[78]=(int((this->cnl_dt[0].d_usil_can)*100)&0x000000FF);  // усиление канала умножаем на 100 чтобы передать в двух байтах с дробной частью
+        this->infoScan[79]=(int((this->cnl_dt[0].d_usil_can)*100)&0x0000FF00)>>8;
+        this->infoScan[80]=(int((this->cnl_dt[0].d_st_rob)*100)&0x000000FF);  // величина стробирования умножаем на 100 чтобы передать в двух байтах с дробной частью
+        this->infoScan[81]=(int((this->cnl_dt[0].d_st_rob)*100)&0x0000FF00)>>8;
     }
 }
 
