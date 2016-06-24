@@ -1409,7 +1409,7 @@ int UdpClient::DeletePoint()
 int UdpClient::DownloadPoint()
 {
     this->ChangeMoveMode(0);  // принудительно переходим в основной режим движения перед загрузкой тчоек
-   SleeperThread::msleep(5);   // чтобы не загрузить точки для контроля в режим по дугу
+    SleeperThread::msleep(5);   // чтобы не загрузить точки для контроля в режим по дугу
     this->DeletePoint(); //при стирании точек  теперь не удаляется матрица смещения
     int j = 0;
     int count = 0;            // Количество строчек в файле
@@ -1514,6 +1514,7 @@ int UdpClient::Calibration(int napr)
         emit error(" Не выбран файл траектори");
         return 1;
     }
+    this->ChangeMoveMode(0);
 
     //if (this->DeletePoint()) return 1; // в ориентации фланца и так стираем точки
     int begin = 0;
@@ -1564,6 +1565,7 @@ int UdpClient::Calibration(int napr)
 
     if( this->Orientation180(0)) return 1;  // параметр 0 чтобы сохранить первую точку
     // парметр пока не учитывается!!
+
     if (this->DeleteShift()) return 1;   // в ориентации теперь не удаляем смещение, а все точки дял калибровки создаються без смещения
     SleeperThread::msleep(50);
     // фланец установлен начинаем искать сигнал
@@ -2416,11 +2418,11 @@ int UdpClient::GoHome()
     }
     if ( er == 3)
     {
-        this->MoveZ(200);
+        if(this->MoveZ(200)) return 1;
     }
     else
     {
-        this->MoveZ(this->iMaxZ);
+        if(this->MoveZ(this->iMaxZ)) return 1;
     }
 
     QByteArray Data;
@@ -2942,7 +2944,35 @@ int UdpClient::Move2step(float step,int napr)
     QString stroka="62;";
     stroka=stroka+QString::number(step)+";" + QString::number(napr)+";";
     Data.append(stroka);
-    this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
+    this->SendCommand(Data);
+    if (this->ReadData()) return 1;
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        int i = this->vPpriemMessage.size();
+        Data = this->vPpriemMessage[i-1];
+    }
+    // размер 1 а индекс первого ноль
+    QString str(Data);
+    if ((str.contains("wait",Qt::CaseInsensitive)))
+    {
+        emit error("Дождитесь завершения движения");
+        return 0;
+    }
+    else
+    {
+        if ((str.contains("step",Qt::CaseInsensitive)))
+        {
+            // все хорошо
+            return 0;
+        }
+        else
+        {
+            emit error("Ошибка перемещения по окружности " + str);
+            return 1;
+        }
+    }
+
+    //this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
     return 0;
 }
 int UdpClient::Move2degree(float degree,int napr)
@@ -2956,7 +2986,36 @@ int UdpClient::Move2degree(float degree,int napr)
     QString stroka="63;";
     stroka=stroka+QString::number(degree)+";" + QString::number(napr)+";";
     Data.append(stroka);
-    this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
+    this->SendCommand(Data);
+    if (this->ReadData()) return 1;
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        int i = this->vPpriemMessage.size();
+        Data = this->vPpriemMessage[i-1];
+    }
+    // размер 1 а индекс первого ноль
+    QString str(Data);
+    if ((str.contains("wait",Qt::CaseInsensitive)))
+    {
+        emit error("Дождитесь завершения движения");
+        return 0;
+    }
+    else
+    {
+        if ((str.contains("step",Qt::CaseInsensitive)))
+        {
+            // все хорошо
+            return 0;
+        }
+        else
+        {
+            emit error("Ошибка перемещения по окружности " + str);
+            return 1;
+        }
+
+    }
+
+    // this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
     return 0;
 }
 UdpClient::~UdpClient()
