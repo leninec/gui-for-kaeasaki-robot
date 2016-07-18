@@ -74,7 +74,7 @@ int UdpClient::Process()
                 // emit error(QString::number(this->stC.z)+" Z " + coordLIst[2]);
                 // coord=coordLIst[7].toInt();
 
-                this->stC.marker=4;
+                this->stC.marker = 4;
                 // this->stC.nPoint=coord;
                 this->stC.nPoint = coordLIst[7].toInt();
 
@@ -2928,7 +2928,7 @@ int UdpClient::ChangeMoveMode(int mode)
     QByteArray Data;
     Data.clear();
     QString stroka="61;";
-    stroka=stroka+QString::number(mode)+";" ;
+    stroka = stroka+QString::number(mode)+";" ;
     Data.append(stroka);
     this->SendCommand(Data,"setmode", " Ошибка переключения режима движения",1);
     return 0;
@@ -2941,39 +2941,36 @@ int UdpClient::Move2step(float step,int napr)
     }
     QByteArray Data;
     Data.clear();
-    QString stroka="62;";
-    stroka=stroka+QString::number(step)+";" + QString::number(napr)+";";
+    QString stroka = "62;";
+    stroka = stroka+QString::number(step)+";" + QString::number(napr)+";";
     Data.append(stroka);
     this->SendCommand(Data);
-    if (this->ReadData()) return 1;
+    if (this->ReadData())
+        return 1;
     {
         QMutexLocker locker(&vPpriemMessage_mutex);
         int i = this->vPpriemMessage.size();
-        Data = this->vPpriemMessage[i-1];
+        Data  = this->vPpriemMessage[i-1];// размер 1 а индекс первого ноль
     }
-    // размер 1 а индекс первого ноль
+    emit answer(); // проверочная строка чтобы посмотреть ответ
+
     QString str(Data);
     if ((str.contains("wait",Qt::CaseInsensitive)))
     {
         emit error("Дождитесь завершения движения");
         return 0;
     }
-    else
+
+    if ((str.contains("step",Qt::CaseInsensitive)))
     {
-        if ((str.contains("step",Qt::CaseInsensitive)))
-        {
-            // все хорошо
-            return 0;
-        }
-        else
-        {
-            emit error("Ошибка перемещения по окружности " + str);
-            return 1;
-        }
+        // все хорошо
+        return 0;
     }
 
-    //this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
-    return 0;
+    if (((str.contains("move",Qt::CaseInsensitive)))) return 0;
+
+    emit error("Ошибка перемещения по окружности " + str);
+    return 1;
 }
 int UdpClient::Move2degree(float degree,int napr)
 {
@@ -2983,7 +2980,7 @@ int UdpClient::Move2degree(float degree,int napr)
     }
     QByteArray Data;
     Data.clear();
-    QString stroka="63;";
+    QString stroka = "63;";
     stroka=stroka+QString::number(degree)+";" + QString::number(napr)+";";
     Data.append(stroka);
     this->SendCommand(Data);
@@ -2993,6 +2990,7 @@ int UdpClient::Move2degree(float degree,int napr)
         int i = this->vPpriemMessage.size();
         Data = this->vPpriemMessage[i-1];
     }
+    emit answer(); // проверочная строка чтобы посмотреть ответ
     // размер 1 а индекс первого ноль
     QString str(Data);
     if ((str.contains("wait",Qt::CaseInsensitive)))
@@ -3000,23 +2998,16 @@ int UdpClient::Move2degree(float degree,int napr)
         emit error("Дождитесь завершения движения");
         return 0;
     }
-    else
-    {
-        if ((str.contains("step",Qt::CaseInsensitive)))
-        {
-            // все хорошо
-            return 0;
-        }
-        else
-        {
-            emit error("Ошибка перемещения по окружности " + str);
-            return 1;
-        }
 
+    if ((str.contains("step",Qt::CaseInsensitive)))
+    {
+        // все хорошо
+        return 0;
     }
 
-    // this->SendCommand(Data,"step","Ошибка перемещения по окружности",1);
-    return 0;
+    if ((str.contains("move",Qt::CaseInsensitive)))return 0;    // словили move finish от предудущего шага
+    emit error("Ошибка перемещения по окружности " + str);
+    return 1;
 }
 UdpClient::~UdpClient()
 {

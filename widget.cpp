@@ -262,6 +262,21 @@ Widget::Widget(QWidget *parent) :
             QDir().mkdir(".\\_BD_DEF\\");
 
         }
+   /* */
+
+
+    QString tempName;
+    tempName = ".\\_NASTR\\nstr.txt";
+    QString nameNastr = this->nameFolder +"/system-nastr/start-nastr-2ch";
+    nameNastr.replace("/","\\\\");
+    QFile file(tempName);
+    file.open(QIODevice::WriteOnly | QIODevice::Text); // открываем только для чтения
+    QByteArray qbTemp;
+    qbTemp.append(nameNastr);
+    file.write(qbTemp); // записываем весь массив обратно в файл
+    file.close();
+
+  /**/
 
     this->ItemTitle = new QListWidgetItem;
     ItemTitle->setText("-------Основные этапы контроля-------");

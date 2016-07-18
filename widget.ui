@@ -595,7 +595,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_17">
@@ -1091,7 +1091,7 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>Для ориентации акустической оси небоходимо вывести датчики по обе стороны втулки в районе метки 0 градусов так, чтобы на временной развертке видеть эхо сигнал от передней грани и нажать кнопку Начать ориетацию.</string>
+      <string>Для ориентации акустической оси небоходимо вывести датчики по обе стороны втулки в районе метки 0 градусов так, чтобы на временной развертке видеть эхо сигнал от внешней поверхности и нажать кнопку Начать ориетацию.</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1353,10 +1353,13 @@
        <item row="0" column="0">
         <widget class="QDoubleSpinBox" name="doubleSpinBoxStepDegree">
          <property name="minimum">
-          <double>1.000000000000000</double>
+          <double>0.500000000000000</double>
          </property>
          <property name="maximum">
           <double>180.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.500000000000000</double>
          </property>
         </widget>
        </item>
