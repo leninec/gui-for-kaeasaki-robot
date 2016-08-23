@@ -1662,7 +1662,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(25/stepNastr))))
+        if (!(viAmpMax.size()%((int)(35/stepNastr))))
         {
             emit error("Проверьте расположение втулки");
             this->pFazus->Stop_fazus();
@@ -1804,7 +1804,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(25/stepNastr))))
+        if (!(viAmpMax.size()%((int)(35/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -1930,7 +1930,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(25/stepNastr))))
+        if (!(viAmpMax.size()%((int)(35/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -2049,7 +2049,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(25/stepNastr))))
+        if (!(viAmpMax.size()%((int)(35/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -2257,7 +2257,7 @@ QString UdpClient::SearhIncreace(QString Nastr, int ampLow, int ampMax)
     do   /// подбор величины усиления
     {
         increase += 2;
-        if (increase >= 36)
+        if (increase >= 50)
         {
             emit error("Не смогли найти сигнал, подбор усилиения " + QString::number(increase));
             return ("NULL");

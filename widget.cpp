@@ -1841,6 +1841,12 @@ void Widget::RepeatControl()
 }
 void Widget::HideTab()
 {
+    ui->label_27->setEnabled(false);
+    ui->label_27->setHidden(true);
+    ui->label_28->setEnabled(false);
+    ui->label_28->setHidden(true);
+    ui->label_29->setEnabled(false);
+    ui->label_29->setHidden(true);
     ui->doubleSpinBoxWZx1->setEnabled(false);
     ui->doubleSpinBoxWZx1->setHidden(true);
     ui->doubleSpinBoxWZx2->setEnabled(false);
@@ -1879,6 +1885,12 @@ void Widget::HideTab()
 }
 void Widget::ShowTab()
 {
+    ui->label_27->setEnabled(true);
+    ui->label_27->setHidden(false);
+    ui->label_28->setEnabled(true);
+    ui->label_28->setHidden(false);
+    ui->label_29->setEnabled(true);
+    ui->label_29->setHidden(false);
     ui->doubleSpinBoxWZx1->setEnabled(true);
     ui->doubleSpinBoxWZx1->setHidden(false);
     ui->doubleSpinBoxWZx2->setEnabled(true);
