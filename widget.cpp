@@ -90,7 +90,16 @@ Widget::Widget(QWidget *parent) :
 
     ui->pushButtonStopEmergency->setToolTip(" Останавливает программу робота (лампа RUN/HOLD).");
     ui->pushButtonContinue->setToolTip(" Возобновление программы робота (лампа RUN/HOLD).");
+
+
+    ui->lineEditName->setMaxLength(30);
+    ui->lineEditNumberDet->setMaxLength(30);
+    ui->lineEditNumberOp->setMaxLength(30);
+    ui->lineEditNumberPart->setMaxLength(30);
+    ui->lineEditNumberSbor->setMaxLength(30);
+
     // ui->gridLayout->setEnabled(false);
+
 
     //  qDebug ("Start");
 
@@ -209,6 +218,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->SpinBoxZmove_4,SIGNAL(valueChanged(double)),this,SLOT(SetSpinZ(double)));
 
     connect(ui->pushButtonUzkOk,SIGNAL(clicked()),this,SLOT(NextPageButton()));
+    connect(ui->plainTextEditComment,SIGNAL(textChanged()),this,SLOT(TextChanged()));
 
     connect(this,SIGNAL(quit()),qApp,SLOT(quit()));
     this->threadUDP->start();
@@ -223,6 +233,7 @@ Widget::Widget(QWidget *parent) :
 
     // fH.show();
     QCoreApplication::processEvents();
+
     if (QFile::exists(".\\conf2.conf"))
     {
         QString temp;
@@ -2262,6 +2273,14 @@ void Widget::OpenButtonMotion()
     ui->pushButtonZpMove_2->setEnabled(true);
     ui->pushButtonZpMove_3->setEnabled(true);
     ui->pushButtonZpMove_4->setEnabled(true);
+}
+void Widget::TextChanged()
+{
+    if(ui->plainTextEditComment->toPlainText().length() >700)
+    {
+       ui->plainTextEditComment->setPlainText(ui->plainTextEditComment->toPlainText().left(700));
+
+    }
 }
 
 Widget::~Widget()

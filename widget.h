@@ -115,6 +115,7 @@ private slots:
 
     void on_stackedWidget_currentChanged(int arg1);
 
+    void TextChanged();
 private:
     bool bReadyControl;
     bool bMassivButton[13];
