@@ -1355,12 +1355,12 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
             QMutexLocker locker(&vPpriemMessage_mutex);
 
             int i = this->vPpriemMessage.size();
-            if (i ==0 )
+            if (i == 0 )
             {
                 emit error("Потерял данные в векторее сообщений определение координаты");
                 return 1;
             }
-            while (i>0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
+            while (i > 0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
             {
               Data = this->vPpriemMessage[i-1];
               QString str(Data);

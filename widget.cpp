@@ -1431,7 +1431,7 @@ void Widget::HereShift()
 void Widget::Here()
 {
     rs10nComand comand;
-    comand.instruction=here;
+    comand.instruction = here;
     this->udpClient->AddComand(comand);
 }
 void Widget::ClearStep()
