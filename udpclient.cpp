@@ -691,7 +691,7 @@ int UdpClient::ReadData()
 int UdpClient::SendCommand(QByteArray baCommand,
                            QString sAnswer,
                            QString sError,
-                           int par,                //0 - delete message, 1 - only read message
+                           int par,                //0 - delete message, 1 - only read message, 2 - no action
                            int timeout,
                            int nSend)
 {
@@ -703,7 +703,7 @@ int UdpClient::SendCommand(QByteArray baCommand,
     if (this->ReadData())
     {
         //emit error("Ошибка чтения ответа, ждем " + sAnswer);
-        return 1;  /// бляяя если все не работает смотреть тут!
+        return -1;  /// бляяя если все не работает смотреть тут!
     }
     {
         QString sWrongAnswer;
@@ -715,18 +715,22 @@ int UdpClient::SendCommand(QByteArray baCommand,
             str.replace(" ", "");
             if(str.contains(sAnswer,Qt::CaseInsensitive))
             {
-                if (par)
+                switch (par)
                 {
-                    emit answer();
-                }
-                else
-                {
+                case 0:
                     this->vPpriemMessage.remove(i-1);
+                    break;
+                case 1:
+                    emit answer();
+                    break;
+                default:
+                    break;
                 }
                 return 0; // нашли нужный нам ответ, выходим
+
             }
-            sWrongAnswer =str;
-           i--;
+            sWrongAnswer = str;
+            i--;
         }
         emit error(sError + " "+ sWrongAnswer);
         /*
@@ -757,7 +761,7 @@ int UdpClient::SendCommand(QByteArray baCommand,
         }
         */
     }
-    return 1;
+    return 1; // в случае ошибки возвразаем минус 1!!!!!!!!!!!!!!!!
 }
 int UdpClient::SendCommand(QByteArray baCommand, int timeout,int nSend)
 {
@@ -1310,18 +1314,27 @@ int UdpClient::Here(float *x,float *y,float *z)
 {
     QByteArray Data;
     Data.append("2;");// узнать текущую координату
-    int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
-    if ( er ==0 )
+   // int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
+    // функция SendComand в случае успеха выхвала фукцию ReadMessge которая забирала сообшение в интерфейс и стирало его
+    int er = this->SendCommand(Data,"here","Ошибка определения местоположения",2);
+    if ( er == 0 )
     {
         QMutexLocker locker(&vPpriemMessage_mutex);
         {
             int i = this->vPpriemMessage.size();
-            if (i ==0 )
+            if (i == 0 )
             {
-                emit error("Потерял данные в векторее сообщений определение координаты");
+                emit error("Потерял данные в векторе сообщений определение координаты");
                 return 1;
             }
-            Data = this->vPpriemMessage[i-1];
+            while (i>0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
+            {
+              Data = this->vPpriemMessage[i-1];
+              QString str(Data);
+              if (str.contains("here",Qt::CaseInsensitive)) break;
+              i--;
+            }
+
         }
         QString str(Data);
         QStringList message = str.split(";");
@@ -1335,7 +1348,7 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
 {
     QByteArray Data;
     Data.append("2;");// узнать текущую координату
-    int er = this->SendCommand(Data,"here","Ошибка определения местоположения",1);
+    int er = this->SendCommand(Data,"here","Ошибка определения местоположения",2);
     if ( er ==0 )
     {
         {
@@ -1347,7 +1360,14 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
                 emit error("Потерял данные в векторее сообщений определение координаты");
                 return 1;
             }
-            Data = this->vPpriemMessage[i-1];
+            while (i>0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
+            {
+              Data = this->vPpriemMessage[i-1];
+              QString str(Data);
+              if (str.contains("here",Qt::CaseInsensitive)) break;
+              i--;
+            }
+
         }
         QString str(Data);
         QStringList message = str.split(";");
@@ -2804,21 +2824,28 @@ int UdpClient::TestMotor()
 {
     QByteArray Data;
     Data.append("58;");// запрос включен ли двигатель
-    int er = this->SendCommand(Data,"motor","Ошибка получения статуса мотора",1);
-    if ( er ==0 )
+    int er = this->SendCommand(Data,"motor","Ошибка получения статуса мотора",2);
+    if ( er == 0 )
     {
         {
             QMutexLocker locker(&vPpriemMessage_mutex);
 
             int i = this->vPpriemMessage.size();
-            if (i ==0 )
+            if (i == 0 )
             {
                 emit error("Потерял данные в векторее сообщений получение статуса мотора");
                 return 1;
             }
-            Data = this->vPpriemMessage[i-1];
+            while (i > 0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
+            {
+              Data = this->vPpriemMessage[i-1];
+              QString str(Data);
+              if (str.contains("motor",Qt::CaseInsensitive)) break;
+              i--;
+            }
+
             QString str(Data);
-            if (str.contains("motor"))
+            if (str.contains("motor")) //два раза проверяю одно и то же!
             {
                 if(str.contains("on"))
                 {
