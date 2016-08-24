@@ -2281,17 +2281,17 @@ QString UdpClient::SearhIncreace(QString Nastr, int ampLow, int ampMax)
 }
 int UdpClient::MoveX(float value)
 {
+    int er;
     float x,y,z;
-    this->Here( &x, &y, &z);
+    if (this->Here( &x, &y, &z)) return 1;
     if (((x+value) < (this->fWZx1)) || (x+value > this->fWZx2))
     {
         emit error(" Точка назначения за границами рабочей зоны X.");
         return 1;
-    }
-    int er;
+    } 
     QByteArray Data;
     QString stroka="21;";
-    stroka=stroka+QString::number(value)+";";
+    stroka = stroka + QString::number(value)+";";
     Data.clear();
     Data.append(stroka);
     er = this->SendCommand(Data,"movefinish","Ошибка перемещение X",1,15000,1);
@@ -2301,7 +2301,7 @@ int UdpClient::MoveY(float value)
 {
     int er;
     float x,y,z;
-    this->Here( &x, &y, &z);
+    if (this->Here( &x, &y, &z)) return 1;
     if (((y+value) < (this->fWZy1)) || (y+value > this->fWZy2))
     {
         emit error(" Точка назначения за границами рабочей зоны Y.");
@@ -2309,7 +2309,7 @@ int UdpClient::MoveY(float value)
     }
     QByteArray Data;
     QString stroka="21;0;";
-    stroka=stroka+QString::number(value)+";";
+    stroka = stroka + QString::number(value)+";";
     Data.clear();
     Data.append(stroka);
     er = this->SendCommand(Data,"movefinish","Ошибка перемещение Y",1,15000,1);
@@ -2319,7 +2319,7 @@ int UdpClient::MoveZ(float value)
 {
     int er;
     float x,y,z;
-    this->Here( &x, &y, &z);
+    if (this->Here( &x, &y, &z)) return 1;
     if (((z+value) < (this->fWZz1)) || (z+value > this->fWZz2))
     {
         emit error(" Точка назначения за границами рабочей зоны Z");
@@ -2327,7 +2327,7 @@ int UdpClient::MoveZ(float value)
     }
     QByteArray Data;
     QString stroka="21;0;0;";
-    stroka=stroka+QString::number(value)+";";
+    stroka = stroka + QString::number(value)+";";
     Data.clear();
     Data.append(stroka);
     er = this->SendCommand(Data,"movefinish","Ошибка перемещение Z",1,15000,1);
