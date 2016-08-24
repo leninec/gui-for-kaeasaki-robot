@@ -620,7 +620,7 @@ int UdpClient::ReadData()
 {
     QByteArray buffer;
     // if ((this->socketrecv->pendingDatagramSize())==-1)
-    if (this->socket->hasPendingDatagrams())
+    if (!(this->socket->hasPendingDatagrams())) // 24.08.16 если нет данных тогда подождать еще
     {
         if (!(this->socket->waitForReadyRead(3000)))
         {
@@ -706,7 +706,30 @@ int UdpClient::SendCommand(QByteArray baCommand,
         return 1;  /// бляяя если все не работает смотреть тут!
     }
     {
+        QString sWrongAnswer;
         QMutexLocker locker(&vPpriemMessage_mutex);
+        int i = this->vPpriemMessage.size();
+        while (i>0)
+        {
+            QString str(this->vPpriemMessage[i-1]);
+            str.replace(" ", "");
+            if(str.contains(sAnswer,Qt::CaseInsensitive))
+            {
+                if (par)
+                {
+                    emit answer();
+                }
+                else
+                {
+                    this->vPpriemMessage.remove(i-1);
+                }
+                return 0; // нашли нужный нам ответ, выходим
+            }
+            sWrongAnswer =str;
+           i--;
+        }
+        emit error(sError + " "+ sWrongAnswer);
+        /*
         if(int i = this->vPpriemMessage.size())
         {
             QString str(this->vPpriemMessage[i-1]);
@@ -732,8 +755,9 @@ int UdpClient::SendCommand(QByteArray baCommand,
         {
             emit error(sError + "2");
         }
+        */
     }
-    return 0;
+    return 1;
 }
 int UdpClient::SendCommand(QByteArray baCommand, int timeout,int nSend)
 {
