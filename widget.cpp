@@ -238,9 +238,6 @@ Widget::Widget(QWidget *parent) :
 
     if (QFile::exists(".\\conf2.conf"))
     {
-        QString Stemp;
-        QString Sresult;
-        QString Sparser;
         QByteArray QbTemp;
         QByteArray QbName;
 
@@ -1460,7 +1457,7 @@ void Widget::HereShift()
 {
     QMessageBox msgBox;
     msgBox.setWindowTitle(" Управление роботом RS10");
-    msgBox.setText("Датчики расположены в начальной точке(под деталью, с учетом выбранной траектории)?");
+    msgBox.setText("Датчики расположены в начальной точке(под деталью, с учетом выбранной траектории)? После нажатия кнопки Да начнется процесс загрузки выбранной траектории(может занять несколько минут)");
     //  msgBox.setInformativeText(" Процедура контроля была прервана. Сохранить записанные данные?");
     msgBox.setIcon(QMessageBox::Question);
     QPushButton *yes = msgBox.addButton(tr("Да"), QMessageBox::ActionRole);
