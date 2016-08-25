@@ -101,6 +101,8 @@ public slots:
 
     void NextPageButton();
 
+    void GetSpeedMech();
+
     //    void OneShot();
 
 private slots:
@@ -149,6 +151,8 @@ private:
     int i_flag_button[12];
 
     QString chtosyQt(QString str);
+    int parser(const char *find, const char *source, char *dest);
+    int parser (QByteArray *find,QByteArray *source,QByteArray *dest);
     void CloseButtonMotion();
     void OpenButtonMotion();
     void SetButtonControl();

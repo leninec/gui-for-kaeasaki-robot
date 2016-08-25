@@ -98,6 +98,8 @@ Widget::Widget(QWidget *parent) :
     ui->lineEditNumberPart->setMaxLength(30);
     ui->lineEditNumberSbor->setMaxLength(30);
 
+    ui->plainTextEdit->setReadOnly(true);// 24.08.16 запретить запись в поле статуса
+
     // ui->gridLayout->setEnabled(false);
 
 
@@ -134,7 +136,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonNastr,SIGNAL(clicked()),this,SLOT(GetNastr()));
     // connect(fazusD,SIGNAL(scan()),this,SLOT(ShowScan()));
     connect(ui->pushButtonSend,SIGNAL(clicked()),this,SLOT(SendComand()));
-   // connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()));
+    // connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()));
     connect(udpClient,SIGNAL(answer()),this,SLOT(ReadAnswer()),Qt::QueuedConnection);
 
     connect(ui->pushButtonPump,SIGNAL(clicked()),this,SLOT(Pump()));
@@ -148,7 +150,7 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonPass,SIGNAL(clicked()),this,SLOT(ShowService()));
     connect(ui->pushButtonHide,SIGNAL(clicked()),this,SLOT(HideTab()));
     connect(ui->pushButtonStopFazus,SIGNAL(clicked()),this,SLOT(StopFazus()));
-   // connect(ui->pushButtonStopFazus,SIGNAL(clicked()),qApp,SLOT(quit()));
+    // connect(ui->pushButtonStopFazus,SIGNAL(clicked()),qApp,SLOT(quit()));
     connect(ui->pushButtonPipe,SIGNAL(clicked()),this,SLOT(TestPipe()));
 
     //connect(ui->pBoneShot,SIGNAL(clicked(bool)),this,SLOT(OneShot1()));
@@ -236,45 +238,98 @@ Widget::Widget(QWidget *parent) :
 
     if (QFile::exists(".\\conf2.conf"))
     {
-        QString temp;
+        QString Stemp;
+        QString Sresult;
+        QString Sparser;
+        QByteArray QbTemp;
+        QByteArray QbName;
+
         QFile file(".\\conf2.conf");
         file.open(QIODevice::ReadOnly | QIODevice::Text); // открываем только для чтения
-        temp = file.readAll(); // записываем весь массив обратно в файл
+        QbTemp = file.readAll();
         file.close();
-        QStringList tempL = temp.split("\n");
-        int n = tempL.size();
         ui->plainTextEditComment->clear();
-        for (int i = 0;i<n;i++ )
+
+        int ifirst = QbTemp.indexOf("fieldname:");
+        int ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 10;
+        int j=0;
+        for (ifirst;ifirst<ilast;ifirst++)
         {
-            if (i>0)
-            {
-                ui->lineEditName->setText(tempL[0]);
-            }
-            if (i>1)
-            {
-                ui->lineEditNumberDet->setText(tempL[1]);
-            }
-            if (i>2)
-            {
-                ui->lineEditNumberPart->setText(tempL[2]);
-            }
-            if (i>3)
-            {
-                ui->lineEditNumberSbor->setText(tempL[3]);
-            }
-            if (i>=4)
-            {
-                ui->plainTextEditComment->appendPlainText(tempL[i]);
-            }
+            QbName[j]=QbTemp[ifirst];
+            j++;
         }
+        // ui->plainTextEdit->appendPlainText("начало " + QString::number(ifirst)+ "конец "+QString::number(ilast) );
+        ui->lineEditName->setText(QbName);
+
+        ifirst = QbTemp.indexOf("ndet:");
+        ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 5;
+        j=0;
+        QbName.clear();
+        for (ifirst;ifirst<ilast;ifirst++)
+        {
+            QbName[j]=QbTemp[ifirst];
+            j++;
+        }
+        ui->lineEditNumberDet->setText(QbName);
+
+        ifirst = QbTemp.indexOf("nparty:");
+        ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 7;
+        j=0;
+        QbName.clear();
+        for (ifirst;ifirst<ilast;ifirst++)
+        {
+            QbName[j]=QbTemp[ifirst];
+            j++;
+        }
+        ui->lineEditNumberPart->setText(QbName);
+
+        ifirst = QbTemp.indexOf("nassemplypart:");
+        ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 14;
+        j=0;
+        QbName.clear();
+        for (ifirst;ifirst<ilast;ifirst++)
+        {
+            QbName[j]=QbTemp[ifirst];
+            j++;
+        }
+        ui->lineEditNumberSbor->setText(QbName);
+
+        ifirst = QbTemp.indexOf("noperation:");
+        ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 11;
+        j=0;
+        QbName.clear();
+        for (ifirst;ifirst<ilast;ifirst++)
+        {
+            QbName[j]=QbTemp[ifirst];
+            j++;
+        }
+        ui->lineEditNumberOp->setText(QbName);
+
+        ifirst = QbTemp.indexOf("fieldcomment:");
+        ilast = QbTemp.indexOf("}",ifirst);
+        ifirst = ifirst + 13;
+        j=0;
+        QbName.clear();
+        for (ifirst;ifirst<ilast;ifirst++)
+        {
+            QbName[j]=QbTemp[ifirst];
+            j++;
+        }
+        ui->plainTextEditComment->appendPlainText(QbName);
+
+
+
     }
     if (!(QDir(".\\_BD_DEF\\").exists()==true) )
-        {
-            QDir().mkdir(".\\_BD_DEF\\");
+    {
+        QDir().mkdir(".\\_BD_DEF\\");
 
-        }
-   /* */
-
+    }
 
     QString tempName;
     tempName = ".\\_NASTR\\nstr.txt";
@@ -287,7 +342,7 @@ Widget::Widget(QWidget *parent) :
     file.write(qbTemp); // записываем весь массив обратно в файл
     file.close();
 
-  /**/
+    /**/
 
     this->ItemTitle = new QListWidgetItem;
     ItemTitle->setText("-------Основные этапы контроля-------");
@@ -499,7 +554,7 @@ void Widget::ReadAnswer()
 
     QFont qFont;
     QString str(this->udpClient->ReadMessage());
-     // if(str != 0)
+    // if(str != 0)
     while (str != 0)
     {
         str.replace(" ", "");// стираем пробелы иначе плохо опознаются ответы
@@ -645,7 +700,7 @@ void Widget::ReadAnswer()
             this->bMassivButton[bstop]= true;
             this->SetButtonControl();
 
-           // this->OpenButtonMotion();
+            // this->OpenButtonMotion();
             QFont qFont;
             qFont = this->ItemStartPoint->font();
             qFont.setStrikeOut(true);
@@ -1371,8 +1426,8 @@ void Widget::OpenFileT(QString fileName)
     if (fileName == "0")
     {
         QString nameFoldertrace = ".\\traectori";
-     //   fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
-     //                                           tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
+        //   fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
+        //                                           tr("TXT(*.txt);; Text Files (*.dat);;C++ Files (*.cpp *.h)"));
         fileName = QFileDialog::getOpenFileName(this, tr("Open File"), nameFoldertrace,
                                                 tr(" Text Files (*.dat *.txt);;C++ Files (*.cpp *.h)"));
 
@@ -1692,32 +1747,6 @@ void Widget::GoFirstPoint()
 }
 void Widget::WriteComment()
 {
-
-    // тест исключений
-    /*
-
-    try
-    {
-     int a[10];
-     for (int x =10; x>-5;x--)
-     {
-         a[x] = x;
-     }
-
-     qDebug ("/null");
-    }
-    catch(const std::out_of_range& e)
-    {
-
-
-        qDebug()<<e.what();
-        qDebug ("catch");
-        QMessageBox msgBox;
-        msgBox.setWindowTitle(" Исключение");
-        msgBox.setText(" dgsdgs");
-        msgBox.exec();
-    }
-    /**/
 
     this->comment.clear();
     QString stmp = ui->lineEditName->text();
@@ -2157,7 +2186,7 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     switch (arg1) // следить за индексами вкладок, могут убежать
     {
     case 1:
-       /* ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+        /* ui->plainTextEdit->appendPlainText(" Основной режим движения ");
         comand.instruction = changeMoveMode;
         comand.parametr1 = 0;
         this->udpClient->AddComand(comand);
@@ -2167,24 +2196,24 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     case 2:
         if (bFlagMoveMode)
         {
-        ui->plainTextEdit->appendPlainText(" Основной режим движения ");
-        comand.instruction = changeMoveMode;
-        comand.parametr1 = 0;
-        this->udpClient->AddComand(comand);
-        bFlagMoveMode = false;
-        //вторая вкладка - ориентация (калибровка) нужен основной режим
+            //  ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+            comand.instruction = changeMoveMode;
+            comand.parametr1 = 0;
+            this->udpClient->AddComand(comand);
+            bFlagMoveMode = false;
+            //вторая вкладка - ориентация (калибровка) нужен основной режим
         }
         break;
     case 3:
         if (!bFlagMoveMode)
         {
-        ui->plainTextEdit->appendPlainText(" Режим по дуге езденья ");
-        comand.instruction = changeMoveMode;
-        comand.parametr1 = 1;
-        this->udpClient->AddComand(comand);
-        comand.instruction = setCircle; // сразу создаем траекторию новую
-        this->udpClient->AddComand(comand);
-        bFlagMoveMode = true;
+            //ui->plainTextEdit->appendPlainText(" Режим по дуге езденья ");
+            comand.instruction = changeMoveMode;
+            comand.parametr1 = 1;
+            this->udpClient->AddComand(comand);
+            comand.instruction = setCircle; // сразу создаем траекторию новую
+            this->udpClient->AddComand(comand);
+            bFlagMoveMode = true;
         }
         break;
     case 4:
@@ -2199,12 +2228,12 @@ void Widget::on_stackedWidget_currentChanged(int arg1)
     case 5:
         if(bFlagMoveMode)
         {
-        ui->plainTextEdit->appendPlainText(" Основной режим движения ");
-        comand.instruction = changeMoveMode;
-        comand.parametr1 = 0;
-        this->udpClient->AddComand(comand);
-        //Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
-        bFlagMoveMode = false;
+            //   ui->plainTextEdit->appendPlainText(" Основной режим движения ");
+            comand.instruction = changeMoveMode;
+            comand.parametr1 = 0;
+            this->udpClient->AddComand(comand);
+            //Widget::setTabOrder(ui->lineEditPass,ui->pushButtonPass);// не помагает
+            bFlagMoveMode = false;
         }
         break;
     default:
@@ -2278,10 +2307,67 @@ void Widget::TextChanged()
 {
     if(ui->plainTextEditComment->toPlainText().length() >700)
     {
-       ui->plainTextEditComment->setPlainText(ui->plainTextEditComment->toPlainText().left(700));
+        ui->plainTextEditComment->setPlainText(ui->plainTextEditComment->toPlainText().left(700));
 
     }
 }
+void Widget::GetSpeedMech()
+{
+    rs10nComand comand;
+    comand.instruction = getRS10parametr;
+    //  comand.parametr1 = ui->doubleSpinBoxStepMm->value();
+    //  comand.parametr2 = 1;
+    this->udpClient->AddComand(comand);
+
+}
+int Widget::parser(const char *find, const char *source, char *dest)
+{
+    char ch[1024*20];
+    int i,j;
+    ch[0] = '{';
+    ch[1] = 0;
+    strcat_s(ch,find);
+    strcat_s(ch,":");
+    dest[0]= 0;
+    j = 0;
+    if (( i = (strstr(source,ch) - source)) < 0) return 1; // не найдено совпадений
+    i += strlen(ch);
+    while (source[i] != '}' && source[i] !=0)
+    {
+        dest[j] = source[i];
+        i++;
+        j++;
+    }
+    dest[j] = 0;
+    return 0;
+}
+int Widget::parser(QByteArray *find, QByteArray *source, QByteArray *dest)
+{
+    /*
+    QByteArray ch;
+    int i,j;
+    QByteArray x("{");
+    QByteArray y("0");
+
+    x.append(find->to);
+    //strcat_s(ch,find);
+   // strcat_s(ch,":");
+    dest[0]= 0;
+    j = 0;
+    if (( i = (strstr(source,ch) - source)) < 0) return 1; // не найдено совпадений
+    i += strlen(ch);
+    while (source[i] != '}' && source[i] !=0)
+    {
+        dest[j] = source[i];
+        i++;
+        j++;
+    }
+    dest[j] = 0;
+    */
+    return 0;
+
+}
+
 
 Widget::~Widget()
 {

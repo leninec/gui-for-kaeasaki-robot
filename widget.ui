@@ -1454,7 +1454,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>После ориентации акустической оси датчики будут расположены на метке ноль градусов.  Необоходимо опустить их в начальную точку, учитывая высоту выбранной траектории сканирвания.</string>
+      <string>В текущем положении опустите датчики вниз до уровня начальной точки, учитывая высоту выбранной траектории сканирования.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -2254,7 +2254,7 @@
     <widget class="QWidget" name="gridLayoutWidget_2">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>280</x>
        <y>70</y>
        <width>201</width>
        <height>54</height>
@@ -2294,6 +2294,19 @@
      </property>
      <property name="text">
       <string>Сервис</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonGetSpeedMech">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>70</y>
+       <width>121</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Получить скорость</string>
      </property>
     </widget>
    </widget>

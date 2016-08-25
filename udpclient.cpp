@@ -1082,7 +1082,7 @@ int UdpClient::getRS10parametr()
     int er;
     er = this->getPointCoordint(1,"определение шага",&tmp,&tmp,&tmp,&tmpO1,&tmp,&tmp);
     er = er + this->getPointCoordint(3,"определение шага2",&tmp,&tmp,&tmp,&tmpO2,&tmp,&tmp);
-    if (er!=0)
+    if (er != 0)
     {
         return 1;
     }
