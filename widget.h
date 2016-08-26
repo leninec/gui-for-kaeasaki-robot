@@ -151,6 +151,7 @@ private:
     int i_flag_button[12];
 
     QString chtosyQt(QString str);
+    QString sytochQt(QString str);
     int parser(const char *find, const char *source, char *dest);
     int parser (QByteArray *find,QByteArray *source,QByteArray *dest);
     void CloseButtonMotion();

@@ -238,13 +238,14 @@ Widget::Widget(QWidget *parent) :
 
     if (QFile::exists(".\\conf2.conf"))
     {
-        QByteArray QbTemp;
-        QByteArray QbName;
+        QString QbTemp;
+        QString QbName;
 
         QFile file(".\\conf2.conf");
         file.open(QIODevice::ReadOnly | QIODevice::Text); // открываем только для чтения
         QbTemp = file.readAll();
         file.close();
+       // QbTemp = chtosyQt(QbTemp);
         ui->plainTextEditComment->clear();
 
         int ifirst = QbTemp.indexOf("fieldname:");
@@ -257,7 +258,8 @@ Widget::Widget(QWidget *parent) :
             j++;
         }
         // ui->plainTextEdit->appendPlainText("начало " + QString::number(ifirst)+ "конец "+QString::number(ilast) );
-        ui->lineEditName->setText(QbName);
+       // QbName = sytochQt(QbName);
+        ui->lineEditName->setText(sytochQt( QbName));
 
         ifirst = QbTemp.indexOf("ndet:");
         ilast = QbTemp.indexOf("}",ifirst);
@@ -269,7 +271,7 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        ui->lineEditNumberDet->setText(QbName);
+        ui->lineEditNumberDet->setText(sytochQt(QbName));
 
         ifirst = QbTemp.indexOf("nparty:");
         ilast = QbTemp.indexOf("}",ifirst);
@@ -281,7 +283,7 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        ui->lineEditNumberPart->setText(QbName);
+        ui->lineEditNumberPart->setText(sytochQt(QbName));
 
         ifirst = QbTemp.indexOf("nassemplypart:");
         ilast = QbTemp.indexOf("}",ifirst);
@@ -293,7 +295,7 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        ui->lineEditNumberSbor->setText(QbName);
+        ui->lineEditNumberSbor->setText(sytochQt(QbName));
 
         ifirst = QbTemp.indexOf("noperation:");
         ilast = QbTemp.indexOf("}",ifirst);
@@ -305,7 +307,7 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        ui->lineEditNumberOp->setText(QbName);
+        ui->lineEditNumberOp->setText(sytochQt(QbName));
 
         ifirst = QbTemp.indexOf("fieldcomment:");
         ilast = QbTemp.indexOf("}",ifirst);
@@ -317,7 +319,7 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        ui->plainTextEditComment->appendPlainText(QbName);
+        ui->plainTextEditComment->appendPlainText(sytochQt(QbName));
 
 
 
@@ -1363,6 +1365,7 @@ int Widget::StartControl()
     this->bMassivButton[bnastrUZK]= false;
     this->bMassivButton[bviev]= false;
 
+
     this->SetButtonControl();
     //ui->tab_8->setEnabled(false);
     //ui->tab_7->setEnabled(false);
@@ -2025,7 +2028,7 @@ void Widget::TestPipe()
 }
 void Widget::SetButtonControl()
 {
-    // была задумка использовать какие то макски, готовые сотояния для открытия закрытия кнопок
+    // была задумка использовать какие то макски, готовые состояния для открытия закрытия кнопок
     for (int i = 0; i<13;i++) // размер массива не контролируется!!!
     {
         switch (i) {
@@ -2153,6 +2156,18 @@ QString Widget::chtosyQt(QString str)
     str.replace(QString(")"), QString("&eb;"));
     str.replace(QString(":"), QString("&co;"));
     str.replace(QString("\n"), QString("&nl;"));
+    return str;
+}
+QString Widget::sytochQt(QString str)
+{
+    str.replace(QString("&amp;"), QString("&"));
+    str.replace(QString("&sem;"), QString(";"));
+    str.replace(QString("&bcb;"), QString("{"));
+    str.replace(QString("&ecb;"), QString("}"));
+    str.replace(QString("&bb;"), QString("("));
+    str.replace(QString("&eb;"), QString(")"));
+    str.replace(QString("&co;"), QString(":"));
+    str.replace(QString("&nl;"), QString("\n"));
     return str;
 }
 int Widget::on_listWidget_currentRowChanged(int currentRow)
