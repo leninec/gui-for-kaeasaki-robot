@@ -29,7 +29,8 @@ UdpClient::UdpClient(QObject *parent) : QObject(parent)
     this->fStepAngle = 0;
     this->rHub = 0;
     this->pFazus = NULL;
-    this->fOinstrShift = -42;   // временная компенсация положения датчиков
+   // this->fOinstrShift = -42;   // временная компенсация положения датчиков 42 на вилке которая стоит в воронеже
+    this->fOinstrShift = -37;   // временная компенсация положения датчиков
     this->flagCircle = 0;
     //    this->bSdvig = false;
     connect(this->timer,SIGNAL(timeout()),this,SLOT(EventTimer()), Qt::DirectConnection );
@@ -313,18 +314,18 @@ int UdpClient::Process()
                 //socket->writeDatagram(data,this->qha, PORTADDR);
                 break;
             case sliv:
-                this->SendCommand("34;6;0.5","signal5se","Слив не включен",1 );
+                this->SendCommand("34;6;0.5","signal5se"," Слив не включен",1 );
                 //this->SendCommand("34;6;0.5",2000,2 );
                 break;
             case pump:
                 this->GetDigitalInput();
                 if (this->bLevelBak )
                 {
-                    this->SendCommand("34;5;0.5","signal5se","Насос не включен",1 );
+                    this->SendCommand("34;5;0.5","signal5se"," Насос не включен",1 );
                 }
                 else
                 {
-                    emit error("Проверьте уровень воды в баке" );
+                    emit error(" Проверьте уровень воды в баке" );
                 }
                 break;
             case testPipe:
@@ -344,7 +345,7 @@ int UdpClient::Process()
                 if (this->StartControl()!=0)
                 {
                     data.clear();
-                    data.append("не удалось начать контроль");
+                    data.append(" Не удалось начать контроль");
                     {
                         QMutexLocker locker(&vPpriemMessage_mutex);
                         this->vPpriemMessage.append(data);
@@ -380,7 +381,7 @@ int UdpClient::Process()
                 if (this->TestHere())
                 {
                     QByteArray qbM;
-                    qbM.append("Робот не отвечает");
+                    qbM.append(" Робот не отвечает");
                     {
                         QMutexLocker locker(&vPpriemMessage_mutex);
                         this->vPpriemMessage.append(qbM);
@@ -390,7 +391,7 @@ int UdpClient::Process()
                 else
                 {
                     QByteArray qbM;
-                    qbM.append("Робот отвечает ");
+                    qbM.append(" Робот отвечает ");
                     {
                         QMutexLocker locker(&vPpriemMessage_mutex);
                         this->vPpriemMessage.append(qbM);
@@ -561,7 +562,7 @@ int UdpClient::SendData(QByteArray data, int timeout,int nSend)
             return 0;
         }
     }
-    emit error("Робот не отвечает " + QString(data));
+    emit error(" Робот не отвечает " + QString(data));
     return 1;
     /*
     //if (!(socket->waitForReadyRead(2000)))
@@ -2191,9 +2192,10 @@ int UdpClient::Orientation180(int del)
     float aTmp = 0;
     float tTmp = 0;
 
-    int i;
-    this->Here();
-    {
+   // int i;
+    if (this->Here(&xTmp,&yTmp,&zTmp))return 1;  // 30.08.16 были потери ответа при получении координаты. заменил код на функцию
+
+    /*{
         QMutexLocker locker(&vPpriemMessage_mutex);
         i = this->vPpriemMessage.size();
     }
@@ -2224,9 +2226,11 @@ int UdpClient::Orientation180(int del)
     //  i = this->vPpriemMessage.size();
     //    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
     QStringList strList = str.split(';');
+
     xTmp = strList[0].toFloat();
     yTmp = strList[1].toFloat();
     zTmp = strList[2].toFloat();
+    */
     oTmp = 0 + this->fOinstrShift;   // добавили сдвиг так как другой фланец
     aTmp = 180;
     tTmp = 0;

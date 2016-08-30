@@ -50,7 +50,7 @@ Widget::Widget(QWidget *parent) :
     ui->label_19->setPixmap(myPixmapC);
 
     this->bRepeatControl = false;
-    this->bReadyControl = false;
+    this->bReadyControl  = false;
 
     ui->progressBar->setHidden(true);
 
@@ -101,8 +101,6 @@ Widget::Widget(QWidget *parent) :
     ui->plainTextEdit->setReadOnly(true);// 24.08.16 запретить запись в поле статуса
 
     // ui->gridLayout->setEnabled(false);
-
-
     //  qDebug ("Start");
 
     this->threadF = new QThread;
@@ -129,7 +127,6 @@ Widget::Widget(QWidget *parent) :
     connect(threadF,SIGNAL(finished()),threadF,SLOT(deleteLater()));
     // connect(threadUDP,SIGNAL(destroyed(QObject*)),udpClient,SLOT(stop()));
     //connect(udpClient->timer,SIGNAL(timeout()),udpClient,SLOT(EventTimer()));
-
 
     connect(threadUDP,SIGNAL(started()),udpClient,SLOT(Process()));
 
@@ -172,9 +169,8 @@ Widget::Widget(QWidget *parent) :
     connect(ui->pushButtonZmMove_4,SIGNAL(clicked()),this,SLOT(zMmove()));
     connect(ui->pushButtonZpMove_4,SIGNAL(clicked()),this,SLOT(zPmove()));
 
-
     // connect(ui->pushButtonAscan,SIGNAL(clicked()),this,SLOT(Ascan()));
-    //  connect(ui->pushButtonAscanStop,SIGNAL(clicked()),this,SLOT(AscanStop()));
+    // connect(ui->pushButtonAscanStop,SIGNAL(clicked()),this,SLOT(AscanStop()));
     connect(ui->pushButtonHere,SIGNAL(clicked()),this,SLOT(Here()));
     connect(ui->pushButtonHereShift,SIGNAL(clicked()),this,SLOT(HereShift()));
     connect(ui->pushButtonClearStep,SIGNAL(clicked()),this,SLOT(ClearStep()));
@@ -245,7 +241,7 @@ Widget::Widget(QWidget *parent) :
         file.open(QIODevice::ReadOnly | QIODevice::Text); // открываем только для чтения
         QbTemp = file.readAll();
         file.close();
-       // QbTemp = chtosyQt(QbTemp);
+      // QbTemp = chtosyQt(QbTemp);
         ui->plainTextEditComment->clear();
 
         int ifirst = QbTemp.indexOf("fieldname:");
@@ -257,14 +253,14 @@ Widget::Widget(QWidget *parent) :
             QbName[j]=QbTemp[ifirst];
             j++;
         }
-        // ui->plainTextEdit->appendPlainText("начало " + QString::number(ifirst)+ "конец "+QString::number(ilast) );
+       // ui->plainTextEdit->appendPlainText("начало " + QString::number(ifirst)+ "конец "+QString::number(ilast) );
        // QbName = sytochQt(QbName);
         ui->lineEditName->setText(sytochQt( QbName));
 
         ifirst = QbTemp.indexOf("ndet:");
         ilast = QbTemp.indexOf("}",ifirst);
         ifirst = ifirst + 5;
-        j=0;
+        j = 0;
         QbName.clear();
         for (ifirst;ifirst<ilast;ifirst++)
         {
@@ -276,7 +272,7 @@ Widget::Widget(QWidget *parent) :
         ifirst = QbTemp.indexOf("nparty:");
         ilast = QbTemp.indexOf("}",ifirst);
         ifirst = ifirst + 7;
-        j=0;
+        j = 0;
         QbName.clear();
         for (ifirst;ifirst<ilast;ifirst++)
         {
@@ -288,7 +284,7 @@ Widget::Widget(QWidget *parent) :
         ifirst = QbTemp.indexOf("nassemplypart:");
         ilast = QbTemp.indexOf("}",ifirst);
         ifirst = ifirst + 14;
-        j=0;
+        j = 0;
         QbName.clear();
         for (ifirst;ifirst<ilast;ifirst++)
         {
@@ -300,7 +296,7 @@ Widget::Widget(QWidget *parent) :
         ifirst = QbTemp.indexOf("noperation:");
         ilast = QbTemp.indexOf("}",ifirst);
         ifirst = ifirst + 11;
-        j=0;
+        j = 0;
         QbName.clear();
         for (ifirst;ifirst<ilast;ifirst++)
         {
@@ -312,7 +308,7 @@ Widget::Widget(QWidget *parent) :
         ifirst = QbTemp.indexOf("fieldcomment:");
         ilast = QbTemp.indexOf("}",ifirst);
         ifirst = ifirst + 13;
-        j=0;
+        j = 0;
         QbName.clear();
         for (ifirst;ifirst<ilast;ifirst++)
         {
@@ -320,16 +316,11 @@ Widget::Widget(QWidget *parent) :
             j++;
         }
         ui->plainTextEditComment->appendPlainText(sytochQt(QbName));
-
-
-
     }
     if (!(QDir(".\\_BD_DEF\\").exists()==true) )
     {
         QDir().mkdir(".\\_BD_DEF\\");
-
     }
-
     QString tempName;
     tempName = ".\\_NASTR\\nstr.txt";
     QString nameNastr = this->nameFolder +"/system-nastr/start-nastr-2ch";
@@ -342,7 +333,6 @@ Widget::Widget(QWidget *parent) :
     file.close();
 
     /**/
-
     this->ItemTitle = new QListWidgetItem;
     ItemTitle->setText("-------Основные этапы контроля-------");
     ItemTitle->setFlags(Qt::ItemIsUserCheckable); // вообще запрещает тыкать в надпись мышой, а не только менять галочку
@@ -513,7 +503,7 @@ void Widget::ErrorHandlerUDP(QString serr)
 void Widget::ShowScan()
 {
     this->fazusD->OneShot();
-    for (int i=0;i<1000;i++)
+    for (int i = 0;i<1000;i++)
     {
         char ch[256];
         sprintf(ch,"%d;",this->fazusD->get_amp_def(i));
@@ -590,7 +580,7 @@ void Widget::ReadAnswer()
         }
         if (str.contains("проверьтеуровеньводывбаке",Qt::CaseInsensitive))
         {
-            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  +"Проверьте уровень воды в баке " );
+            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  +" Проверьте уровень воды в баке " );
             flag = 0;
         }
         if (str.contains("робототвечает",Qt::CaseInsensitive))
@@ -768,6 +758,9 @@ void Widget::ReadAnswer()
 
             /**/
             this->bMassivButton[bcalibrovka]= false;
+            // this->bMassivButton[borient] = false;
+            // this->bMassivButton[bpark] = false;
+            // проверить правильность закрытия кнопок
             //  this->bMassivButton[bhereshift]= true; раньше открывали после калибровки. теперь после выбора настройки
             this->SetButtonControl();
 
@@ -823,7 +816,7 @@ void Widget::ReadAnswer()
                 this->GoHome();
             }
             this->InitSystem();
-            flag =0;
+            flag = 0;
         }
         if (str.contains("Номерошибки",Qt::CaseInsensitive))
         {
@@ -1916,6 +1909,7 @@ void Widget::HideTab()
     ui->pushButtonDeletePoint->setHidden(true);
     ui->pushButtonStopFazus->setHidden(true);
     ui->pushButtonPipe->setHidden(true);
+    ui->pushButtonGetSpeedMech->setHidden(true);
     ui->label_16->setHidden(true);
     ui->plainTextEditServis->setHidden(true);
     ui->lineEditSend->setHidden(true);
@@ -1960,6 +1954,7 @@ void Widget::ShowTab()
     ui->pushButtonDeletePoint->setHidden(false);
     ui->pushButtonStopFazus->setHidden(false);
     ui->pushButtonPipe->setHidden(false);
+    ui->pushButtonGetSpeedMech->setHidden(false);
     ui->label_16->setHidden(false);
     ui->plainTextEditServis->setHidden(false);
     ui->lineEditSend->setHidden(false);
