@@ -1533,7 +1533,6 @@ int UdpClient::Calibration(int napr)
 
     QVector <int> viAmpMax;
     QByteArray Data;
-
     if(!(this->pFazus))
     {
         emit error("Ошибка работы с фазусом");
@@ -2157,6 +2156,7 @@ int UdpClient::Calibration(int napr)
     this->fAShift = 180;
     this->fTShift  = 0;
     // присохранение координаты через here углы сильно пляшут
+
     QByteArray message;
     message.clear();
     message.append("calibration finish");

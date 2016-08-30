@@ -615,8 +615,8 @@ void Widget::ReadAnswer()
             this->SetButtonControl();
             flag = 0;
         }
-        this->bMassivButton[bnastrUZK]= true;
-        this->bMassivButton[bviev]= true;
+        //this->bMassivButton[bnastrUZK]= true;//30.08.16
+        //this->bMassivButton[bviev]= true;
         if (str.contains("nosignal14",Qt::CaseInsensitive))
         {
             QMessageBox msgBox;
@@ -755,6 +755,7 @@ void Widget::ReadAnswer()
             qFont.setStrikeOut(true);
             this->ItemOrient->setFont(qFont);
             this->bMassivButton[bgetUzk]= true;
+            this->bMassivButton[bnastrUZK]= true; // 30.08.16
 
             /**/
             this->bMassivButton[bcalibrovka]= false;
