@@ -141,7 +141,7 @@ private:
     void sendInPipe(QByteArray);
     void createPipe(QString pipeName);
     int getPointCoordint (int, QString timeoutText, float *x,float *y,float *z,float *o,float *a,float *t);
-    int getRS10parametr();
+    int GetRS10parametr();
     int UploadShift();
     int OpenFileT(QString);
     int HereShift();

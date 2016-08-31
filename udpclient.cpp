@@ -452,6 +452,9 @@ int UdpClient::Process()
             case move2point:
                 this->Move2step(comand.parametr1,comand.parametr2);
                 break;
+            case getRS10parametr:
+                this->GetRS10parametr();
+                break;
             case manualMoveXYZ:
                 if(comand.parametr1)
                 {
@@ -1028,7 +1031,7 @@ void UdpClient::createPipe(QString pipeName)
   }
   */
 }
-int UdpClient::getRS10parametr()
+int UdpClient::GetRS10parametr()
 {
     float tmp;
     float tmpO1;
@@ -1036,7 +1039,7 @@ int UdpClient::getRS10parametr()
 
     QByteArray Data;
     Data.append("10;");
-    if (SendCommand(Data,"iload,istep,imaxz,mesh_scan,ispeed","Ошибка определния параметров",1)!=0)
+    if (SendCommand(Data,"iload,istep,imaxz,mesh_scan,ispeed","Ошибка определния параметров",2)!=0)
     {
         return 1;
     }
@@ -1069,12 +1072,19 @@ int UdpClient::getRS10parametr()
     if ((this->iMaxZ<10)||(this->iMaxZ>100))
     {
         QString str;
-        str="Высота изделия определна как ";
-        str=str+QString::number(this->iMaxZ);
+        str= "Высота изделия определна как ";
+        str= str+QString::number(this->iMaxZ);
         emit error(str);
 
         if (this->iMaxZ == 0) return 3;
     }
+    QByteArray mes;
+    mes.append("параметры робота;" +QString::number(this->iSpeed)+";"+QString::number(this->iMesh)+";");
+    {
+        QMutexLocker locker(&vPpriemMessage_mutex);
+        this->vPpriemMessage.append(mes);
+    }
+    emit answer();
     if (this->iNumPoint<4)
     {
         emit error(" Траектория не загружена");
@@ -1088,6 +1098,8 @@ int UdpClient::getRS10parametr()
         return 1;
     }
     this->fStepAngle = tmpO2-tmpO1;
+
+
     return 0;
 }
 int UdpClient::getPointCoordint(int nP, QString timeoutText, float *x,float *y,float *z,float *o,float *a,float *t)
@@ -2192,45 +2204,8 @@ int UdpClient::Orientation180(int del)
     float aTmp = 0;
     float tTmp = 0;
 
-   // int i;
+
     if (this->Here(&xTmp,&yTmp,&zTmp))return 1;  // 30.08.16 были потери ответа при получении координаты. заменил код на функцию
-
-    /*{
-        QMutexLocker locker(&vPpriemMessage_mutex);
-        i = this->vPpriemMessage.size();
-    }
-    if (i == 0 )
-    {
-        this->pFazus->Stop_fazus();
-        emit error("Потерял данные в векторее сообщений ориентация фланца 1");
-        return 1;
-    }
-    {
-        QMutexLocker locker(&vPpriemMessage_mutex);
-        Data = this->vPpriemMessage[i-1];
-    }
-    // размер 1 а индекс первого ноль
-
-    QString str(Data);
-    if (!(str.contains("here",Qt::CaseInsensitive)))
-    {
-        this->pFazus->Stop_fazus();
-        emit error("Не то прочитал из вектора сообщений фланец 1" + str);
-        return 1;
-        //не то
-    }
-    {
-        QMutexLocker locker(&vPpriemMessage_mutex);
-        this->vPpriemMessage.clear();
-    }
-    //  i = this->vPpriemMessage.size();
-    //    emit error(QString::number(i) + " кол-во сообщений в векторе, посл собщение = " +vPpriemMessage[i-1]);
-    QStringList strList = str.split(';');
-
-    xTmp = strList[0].toFloat();
-    yTmp = strList[1].toFloat();
-    zTmp = strList[2].toFloat();
-    */
     oTmp = 0 + this->fOinstrShift;   // добавили сдвиг так как другой фланец
     aTmp = 180;
     tTmp = 0;
@@ -2243,7 +2218,6 @@ int UdpClient::Orientation180(int del)
      при создании точки робот вышлет лишнее собщение об отсувии калибровки
      информация об отсувии смещения добавлено внутрь собщение, в ответ одно сообщение теперь
      */
-
     Data.clear();
     Data.append("16;"); // команда поехать
     if (this->SendCommand(Data,"movestart","Ошибка ориентации фланца, движение",1)) return 1;
@@ -2459,7 +2433,7 @@ int UdpClient::MotorOn()
 int UdpClient::GoHome()
 {
     int er;
-    er = this->getRS10parametr();
+    er = this->GetRS10parametr();
     if ( er == 1)
     {
         return 1;
@@ -2474,7 +2448,7 @@ int UdpClient::GoHome()
     }
 
     QByteArray Data;
-    QString stroka="51;";
+    QString stroka = "51;";
     Data.clear();
     Data.append(stroka);
     // emit error("dshrgjkl");
@@ -2624,7 +2598,7 @@ int UdpClient::StartControl()
         emit error("Проверьте уровень воды в ванне");
         return 0;
     }
-    if ((this->getRS10parametr())&&er)
+    if ((this->GetRS10parametr())&&er)
     {
         return 1;// ошибка
     }

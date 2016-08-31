@@ -217,6 +217,7 @@ Widget::Widget(QWidget *parent) :
 
     connect(ui->pushButtonUzkOk,SIGNAL(clicked()),this,SLOT(NextPageButton()));
     connect(ui->plainTextEditComment,SIGNAL(textChanged()),this,SLOT(TextChanged()));
+    connect(ui->pushButtonGetSpeedMech,SIGNAL(clicked()),this,SLOT(GetSpeedMech()));
 
     connect(this,SIGNAL(quit()),qApp,SLOT(quit()));
     this->threadUDP->start();
@@ -836,6 +837,16 @@ void Widget::ReadAnswer()
             }
             flag = 0;
         }
+        if (str.contains("параметрыробота",Qt::CaseInsensitive))                        
+        {
+            QStringList strList = str.split(";");
+            int speed = strList[1].toInt();
+            int mesh = strList[2].toInt();
+            ui->spinBoxSpeed->setValue(speed);
+            ui->spinBoxMech->setValue(mesh);
+            ui->plainTextEdit->appendPlainText("определение заданной скорости "+ strList[1]);
+            flag = 0;
+        }
         if ((str.contains("movestart",Qt::CaseInsensitive))&&(this->udpClient->Get_bDef()))
         {
             if (!(this->fazusD->Get_bStatDef()))  // дополнительная проверка флага снятия данных
@@ -984,6 +995,7 @@ void Widget::ReadAnswer()
             }
             if(msgBox1.clickedButton()== no)
             {
+                SleeperThread::msleep(100);
                 //qFont = ui->labelControl->font();
                 // qFont.setBold(false);
                 // ui->labelControl->setFont(qFont);
@@ -994,8 +1006,9 @@ void Widget::ReadAnswer()
                 //ui->labelNastr->setFont(qFont);
                 // ui->labelNastr->setEnabled(true);
                 this->bRepeatControl = true;
-                this->RepeatControl();
                 this->GoHome();
+                this->RepeatControl();
+
             }
             flag =0;
         }
@@ -2323,8 +2336,6 @@ void Widget::GetSpeedMech()
 {
     rs10nComand comand;
     comand.instruction = getRS10parametr;
-    //  comand.parametr1 = ui->doubleSpinBoxStepMm->value();
-    //  comand.parametr2 = 1;
     this->udpClient->AddComand(comand);
 
 }
