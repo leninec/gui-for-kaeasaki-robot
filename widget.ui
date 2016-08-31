@@ -595,7 +595,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>7</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_17">

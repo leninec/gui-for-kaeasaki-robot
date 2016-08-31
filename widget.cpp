@@ -844,7 +844,7 @@ void Widget::ReadAnswer()
             int mesh = strList[2].toInt();
             ui->spinBoxSpeed->setValue(speed);
             ui->spinBoxMech->setValue(mesh);
-            ui->plainTextEdit->appendPlainText("определение заданной скорости "+ strList[1]);
+            //ui->plainTextEdit->appendPlainText("определение заданной скорости "+ strList[1]);
             flag = 0;
         }
         if ((str.contains("movestart",Qt::CaseInsensitive))&&(this->udpClient->Get_bDef()))
@@ -1005,8 +1005,9 @@ void Widget::ReadAnswer()
                 //  qFont.setBold(true);
                 //ui->labelNastr->setFont(qFont);
                 // ui->labelNastr->setEnabled(true);
-                this->bRepeatControl = true;
+
                 this->GoHome();
+                this->bRepeatControl = true;
                 this->RepeatControl();
 
             }

@@ -1550,7 +1550,7 @@ int UdpClient::Calibration(int napr)
         emit error("Ошибка работы с фазусом");
         return 1;
     }
-    if (this->GetDigitalInput()) return 0;
+    if (this->GetDigitalInput()) return 1;
     if (!(this->bLevelVanna))
     {
         emit error("Проверьте уровень воды в ванне");
@@ -2440,7 +2440,8 @@ int UdpClient::GoHome()
     }
     if ( er == 3)
     {
-        if(this->MoveZ(200)) return 1;
+       // if(this->MoveZ(200)) return 1;
+        this->MoveZ(200); // 31.08.16
     }
     else
     {
@@ -2469,8 +2470,8 @@ int UdpClient::SetWorkSpace(float x1,float y1,float z1,float x2,float y2,float z
 {
     int er;
     QByteArray Data;
-    QString stroka="25;";
-    stroka=stroka+QString::number(x1)+";"+QString::number(y1)+";"+QString::number(z1)+";"+QString::number(x2)+";"+QString::number(y2)+";"+QString::number(z2)+";";
+    QString stroka = "25;";
+    stroka = stroka+QString::number(x1)+";"+QString::number(y1)+";"+QString::number(z1)+";"+QString::number(x2)+";"+QString::number(y2)+";"+QString::number(z2)+";";
     Data.clear();
     Data.append(stroka);
     er = this->SendCommand(Data,"workpoint","Ошибка установки рабочей зоны",1); // вообще робот отвечает двумя командами
@@ -2854,7 +2855,7 @@ int UdpClient::GetDigitalInput()
 {
     QByteArray Data;
     Data.append("33;0;");// запрос включен ли двигатель
-    int er = this->SendCommand(Data,"in10-13","Ошибка получения статуса цифровых входов",1);
+    int er = this->SendCommand(Data,"in10-13","Ошибка получения статуса цифровых входов",2);
     if ( er ==0 )
     {
         {
