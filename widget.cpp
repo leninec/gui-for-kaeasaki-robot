@@ -723,7 +723,7 @@ void Widget::ReadAnswer()
         }
         if (str.contains("filedel",Qt::CaseInsensitive))
         {
-            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"+"Данные удалены " );
+            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"+" Данные удалены " );
             flag = 0;
         }
         if (str.contains("orientationfinish",Qt::CaseInsensitive))
@@ -1468,7 +1468,7 @@ void Widget::HereShift()
 {
     QMessageBox msgBox;
     msgBox.setWindowTitle(" Управление роботом RS10");
-    msgBox.setText("Датчики расположены в начальной точке(под деталью, с учетом выбранной траектории)? После нажатия кнопки Да начнется процесс загрузки выбранной траектории(может занять несколько минут)");
+    msgBox.setText("Датчики расположены в начальной точке (под деталью, с учетом выбранной траектории)? После нажатия кнопки Да начнется процесс загрузки выбранной траектории(может занять несколько минут).");
     //  msgBox.setInformativeText(" Процедура контроля была прервана. Сохранить записанные данные?");
     msgBox.setIcon(QMessageBox::Question);
     QPushButton *yes = msgBox.addButton(tr("Да"), QMessageBox::ActionRole);

@@ -710,8 +710,8 @@ int UdpClient::SendCommand(QByteArray baCommand,
         return -1;  /// бляяя если все не работает смотреть тут!
     }
     {
-        QString sWrongAnswer;
         QMutexLocker locker(&vPpriemMessage_mutex);
+        QString sWrongAnswer;
         int i = this->vPpriemMessage.size();
         while (i>0)
         {
@@ -730,6 +730,9 @@ int UdpClient::SendCommand(QByteArray baCommand,
                 default:
                     break;
                 }
+                //тестовач проверка кол-ва сообщений в веткоре
+                QString sTest = "кол-во сообщений в векторе: " + QString::number(i);
+                emit error(sTest);
                 return 0; // нашли нужный нам ответ, выходим
 
             }
@@ -1072,8 +1075,8 @@ int UdpClient::GetRS10parametr()
     if ((this->iMaxZ<10)||(this->iMaxZ>100))
     {
         QString str;
-        str= "Высота изделия определна как ";
-        str= str+QString::number(this->iMaxZ);
+        str = " Высота изделия определна как ";
+        str = str + QString::number(this->iMaxZ);
         emit error(str);
 
         if (this->iMaxZ == 0) return 3;
@@ -1098,7 +1101,6 @@ int UdpClient::GetRS10parametr()
         return 1;
     }
     this->fStepAngle = tmpO2-tmpO1;
-
 
     return 0;
 }
@@ -1528,6 +1530,7 @@ int UdpClient::Calibration(int napr)
     float fxcoord2 = 0;
     int   increase = 0;
     float stepNastr = (float)0.7;  // величина шага для поиска максимума.
+    int iNumStepSearchMax = 30; // кол-во шагов для поиска максумума сигнала. В воронеже заданно 25. Точнее это кол-во делитьтся на величину шага
     int   ampLow = 55;  // с ацп получаем амплитуда в 255 отчетов. для поиска максимума стараемся держать сигнал где то посередине
     int   ampMax = 207;
     int   znak = 1;
@@ -1718,7 +1721,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(35/stepNastr))))
+        if (!(viAmpMax.size()%((int)(iNumStepSearchMax/stepNastr))))
         {
             emit error("Проверьте расположение втулки");
             this->pFazus->Stop_fazus();
@@ -1860,7 +1863,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(35/stepNastr))))
+        if (!(viAmpMax.size()%((int)(iNumStepSearchMax/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -1986,7 +1989,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(35/stepNastr))))
+        if (!(viAmpMax.size()%((int)(iNumStepSearchMax/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -2105,7 +2108,7 @@ int UdpClient::Calibration(int napr)
                 break;
             }
         }
-        if (!(viAmpMax.size()%((int)(35/stepNastr))))
+        if (!(viAmpMax.size()%((int)(iNumStepSearchMax/stepNastr))))
         {
             this->pFazus->Stop_fazus();
             emit error("Проверьте расположение втулки");
@@ -2348,7 +2351,7 @@ int UdpClient::MoveZ(float value)
         return 1;
     }
     QByteArray Data;
-    QString stroka="21;0;0;";
+    QString stroka = "21;0;0;";
     stroka = stroka + QString::number(value)+";";
     Data.clear();
     Data.append(stroka);
@@ -2445,7 +2448,11 @@ int UdpClient::GoHome()
     }
     else
     {
-        if(this->MoveZ(this->iMaxZ)) return 1;
+        if(this->MoveZ(this->iMaxZ))
+        {
+            emit error(" Вышли из процедуры парковки");
+            return 1;
+        }
     }
 
     QByteArray Data;
