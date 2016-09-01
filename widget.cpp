@@ -978,8 +978,8 @@ void Widget::ReadAnswer()
             //ui->labelControl->setEnabled(false);
             QMessageBox msgBox1;
             msgBox1.setWindowTitle(" Управление роботом RS10");
-            msgBox1.setText("Контроль окончен");
-            msgBox1.setInformativeText("Необходим повторный контроль этой втулки(Без повторной ориентации, и без изменения траектории сканирования)?");
+            msgBox1.setText("Контроль окончен.");
+            msgBox1.setInformativeText("Необходим повторный контроль этой втулки (Без повторной ориентации, и без изменения траектории сканирования)?");
             msgBox1.setIcon(QMessageBox::Question);
             QPushButton *no = msgBox1.addButton(tr("Да"), QMessageBox::ActionRole);
             QPushButton *yes = msgBox1.addButton(tr("Нет"), QMessageBox::ActionRole);
@@ -989,13 +989,14 @@ void Widget::ReadAnswer()
             {
                 this->bRepeatControl = false;
                 this->GoHome();
+                SleeperThread::msleep(10);
                 QCoreApplication::processEvents();
                 this->InitSystem();
                 ui->pushButtonStartControl->setEnabled(true);
             }
             if(msgBox1.clickedButton()== no)
             {
-                SleeperThread::msleep(100);
+
                 //qFont = ui->labelControl->font();
                 // qFont.setBold(false);
                 // ui->labelControl->setFont(qFont);
@@ -1007,6 +1008,7 @@ void Widget::ReadAnswer()
                 // ui->labelNastr->setEnabled(true);
 
                 this->GoHome();
+                SleeperThread::msleep(100);
                 this->bRepeatControl = true;
                 this->RepeatControl();
 

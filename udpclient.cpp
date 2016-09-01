@@ -550,7 +550,7 @@ void UdpClient::ClearData()
 int UdpClient::SendData(QByteArray data, int timeout,int nSend)
 {
     // SleeperThread::msleep(3);
-    int i=0;
+    int i = 0;
     socket->writeDatagram(data,this->qha, PORTADDR);
     while (i<nSend)
     {
@@ -637,11 +637,19 @@ int UdpClient::ReadData()
                          &(this->qha));//, &senderPort);
 
     //qDebug("2");
+   // int n = buffer.indexOf("move point");
+     //if (n != -1)
     if (buffer.indexOf("move point") != -1)
+
     {
+       // QString str(buffer);
+
+       // QStringList SL = str.split(";");
+       // QString sEr = "Приняли информацию о движении к точке,кол-во" + QString::number(n) + " номер точки - " + SL[1];
+
         //  this->vPriemCoordinat.append(buffer);
         // можно потерять данные о перемещении!!!
-        //  emit error("Приняли информацию о движении к точке");
+        emit error(sEr);
         return 2;
     }
     if (buffer.indexOf("No signal 14") != -1)
@@ -652,7 +660,7 @@ int UdpClient::ReadData()
         }
         buffer.clear();
         emit answer();
-        return 1;
+        return 14; // 01.09.16
     }
     if (buffer.indexOf("move finish") != -1) // добавлена проверка так как команда stop уходит без подтверждения
     {
@@ -704,10 +712,15 @@ int UdpClient::SendCommand(QByteArray baCommand,
         // если ответа нет выскочит окошко робот не отвечает
         return 1;
     }
-    if (this->ReadData())
+    if (int er = this->ReadData())
     {
+        if (er == 2) // значит приняли move point который здесь нам не нужен
+        {
+
+        }
         //emit error("Ошибка чтения ответа, ждем " + sAnswer);
-        return -1;  /// бляяя если все не работает смотреть тут!
+        //return -1;  /// бляяя если все не работает смотреть тут!
+        return er; // 01.09.16 тащим ошибку наверх чтобы было проще понять что произошло
     }
     {
         QMutexLocker locker(&vPpriemMessage_mutex);
@@ -1091,7 +1104,7 @@ int UdpClient::GetRS10parametr()
     if (this->iNumPoint<4)
     {
         emit error(" Траектория не загружена");
-        return 2;
+        return 2;     // поидее высота траектории 0 то есть не загруженная таректория будет отслежена на предыдущем шаге
     }
     int er;
     er = this->getPointCoordint(1,"определение шага",&tmp,&tmp,&tmp,&tmpO1,&tmp,&tmp);
@@ -2282,7 +2295,7 @@ QString UdpClient::SearhIncreace(QString Nastr, int ampLow, int ampMax)
     do   /// подбор величины усиления
     {
         increase += 2;
-        if (increase >= 50)
+        if (increase >= 56)
         {
             emit error("Не смогли найти сигнал, подбор усилиения " + QString::number(increase));
             return ("NULL");
@@ -2436,6 +2449,8 @@ int UdpClient::MotorOn()
 int UdpClient::GoHome()
 {
     int er;
+    float x,y,z;
+    this->Here(&x,&y,&z);
     er = this->GetRS10parametr();
     if ( er == 1)
     {
@@ -2453,9 +2468,30 @@ int UdpClient::GoHome()
 
         if(er = this->MoveZ(this->iMaxZ))
         {
-            emit error(" Вышли из процедуры парковки");
-            return 1;
+            if (er == 2) this->WaitingMoveFinish();
+
+           // sEr = " Вышли из процедуры парковки: " + QString::number(er);
+            //emit error(" Вышли из процедуры парковки");
+           // emit error(sEr);
+            //return 1;
         }
+    }
+    SleeperThread(5);
+    float z2;
+    float zNeed;
+    this->Here(&x,&y,&z2);
+    if (this->iMaxZ==0)
+    {
+        zNeed = 199;
+    }
+    else
+    {
+        zNeed = iMaxZ*0.8;
+    }
+    if ((z2-z)<zNeed)
+    {
+        emit error("Парковка не завершена.");
+        return 1;
     }
 
     QByteArray Data;
