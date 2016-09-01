@@ -649,7 +649,7 @@ int UdpClient::ReadData()
 
         //  this->vPriemCoordinat.append(buffer);
         // можно потерять данные о перемещении!!!
-        emit error(sEr);
+        //emit error(sEr);
         return 2;
     }
     if (buffer.indexOf("No signal 14") != -1)
@@ -2476,7 +2476,7 @@ int UdpClient::GoHome()
             //return 1;
         }
     }
-    SleeperThread(5);
+    SleeperThread::sleep(5);
     float z2;
     float zNeed;
     this->Here(&x,&y,&z2);
