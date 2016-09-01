@@ -550,7 +550,7 @@ void UdpClient::ClearData()
 int UdpClient::SendData(QByteArray data, int timeout,int nSend)
 {
     // SleeperThread::msleep(3);
-    int i=0;
+    int i = 0;
     socket->writeDatagram(data,this->qha, PORTADDR);
     while (i<nSend)
     {
@@ -2453,7 +2453,9 @@ int UdpClient::GoHome()
 
         if(er = this->MoveZ(this->iMaxZ))
         {
-            emit error(" Вышли из процедуры парковки");
+            sEr = " Вышли из процедуры парковки" + QString::number(er);
+            //emit error(" Вышли из процедуры парковки");
+            emit error(sEr);
             return 1;
         }
     }

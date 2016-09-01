@@ -979,7 +979,7 @@ void Widget::ReadAnswer()
             QMessageBox msgBox1;
             msgBox1.setWindowTitle(" Управление роботом RS10");
             msgBox1.setText("Контроль окончен");
-            msgBox1.setInformativeText("Необходим повторный контроль этой втулки? (Без повторной ориентации, и без изменения траектории сканирования");
+            msgBox1.setInformativeText("Необходим повторный контроль этой втулки(Без повторной ориентации, и без изменения траектории сканирования)?");
             msgBox1.setIcon(QMessageBox::Question);
             QPushButton *no = msgBox1.addButton(tr("Да"), QMessageBox::ActionRole);
             QPushButton *yes = msgBox1.addButton(tr("Нет"), QMessageBox::ActionRole);
