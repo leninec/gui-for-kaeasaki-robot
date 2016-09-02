@@ -153,7 +153,7 @@ private:
     QString chtosyQt(QString str);
     QString sytochQt(QString str);
     int parser(const char *find, const char *source, char *dest);
-    int parser (QByteArray *find,QByteArray *source,QByteArray *dest);
+  //  int parser (QByteArray *find,QByteArray *source,QByteArray *dest);
     void CloseButtonMotion();
     void OpenButtonMotion();
     void SetButtonControl();

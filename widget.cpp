@@ -733,7 +733,7 @@ void Widget::ReadAnswer()
         }
         if (str.contains("calibrovka-error",Qt::CaseInsensitive))
         {
-            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  +" Ориентация не завершена. Проверьте местоположение втулки и датчиков и повторите процедуру. " );
+            ui->plainTextEdit->appendPlainText("["+data.toString("HH:mm")+"]"  +" Ориентация не завершена. Проверьте местоположение втулки и датчиков и повторите процедуру " );
             this->bMassivButton[bcalibrovka]= true;
             this->bMassivButton[bnastrUZK]= true;
             this->bMassivButton[bgetTraect]= true;
@@ -989,7 +989,7 @@ void Widget::ReadAnswer()
             {
                 this->bRepeatControl = false;
                 this->GoHome();
-                SleeperThread::msleep(10);
+                SleeperThread::msleep(100);
                 QCoreApplication::processEvents();
                 this->InitSystem();
                 ui->pushButtonStartControl->setEnabled(true);
@@ -1009,11 +1009,11 @@ void Widget::ReadAnswer()
 
                 this->GoHome();
                 SleeperThread::msleep(100);
+                QCoreApplication::processEvents();
                 this->bRepeatControl = true;
                 this->RepeatControl();
-
             }
-            flag =0;
+            flag = 0;
         }
         if(flag)
         {
@@ -1746,8 +1746,8 @@ void Widget::GoHome()
     rs10nComand comand;
     comand.instruction = goHome;
     this->udpClient->AddComand(comand);
-    SleeperThread::msleep(100);
-    this->ClearStep();
+   // SleeperThread::msleep(100);   // 02.09.16  при возврате в домашнею позицию счетчик шагов не используется
+   // this->ClearStep();
 }
 void Widget::GoFirstPoint()
 {
@@ -1757,7 +1757,6 @@ void Widget::GoFirstPoint()
 }
 void Widget::WriteComment()
 {
-
     this->comment.clear();
     QString stmp = ui->lineEditName->text();
     stmp.replace(QString("&"), QString(""));
@@ -2363,8 +2362,8 @@ int Widget::parser(const char *find, const char *source, char *dest)
     dest[j] = 0;
     return 0;
 }
-int Widget::parser(QByteArray *find, QByteArray *source, QByteArray *dest)
-{
+//int Widget::parser(QByteArray *find, QByteArray *source, QByteArray *dest)
+//{
     /*
     QByteArray ch;
     int i,j;
@@ -2386,9 +2385,9 @@ int Widget::parser(QByteArray *find, QByteArray *source, QByteArray *dest)
     }
     dest[j] = 0;
     */
-    return 0;
+  //  return 0;
 
-}
+//}
 
 
 Widget::~Widget()

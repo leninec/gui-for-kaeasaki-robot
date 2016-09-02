@@ -1103,7 +1103,7 @@ int UdpClient::GetRS10parametr()
     emit answer();
     if (this->iNumPoint<4)
     {
-        emit error(" Траектория не загружена");
+       // emit error(" Траектория не загружена"); //02.09.16
         return 2;     // поидее высота траектории 0 то есть не загруженная таректория будет отслежена на предыдущем шаге
     }
     int er;
@@ -1133,10 +1133,25 @@ int UdpClient::getPointCoordint(int nP, QString timeoutText, float *x,float *y,f
             int i = this->vPpriemMessage.size();
             if (i ==0 )
             {
-                emit error("Потерял данные в векторе сообщений получение точек");
+                emit error("Потерял данные в векторе сообщений получение координат точек");
                 return 1;
             }
-            Data = this->vPpriemMessage[i-1];
+
+            while (i>0)   //24.08/16 в SendComand теперь перебираем весь вектор принятых сообщений поэтому првоеряем и здесь где именно лежит ответ
+            {
+              Data = this->vPpriemMessage[i-1];
+              QString str(Data);
+              if (str.contains("coordpoint",Qt::CaseInsensitive)) break;
+              i--;
+              if (i==0)
+              {
+                  emit error ("Поетрял данные, получение координат точек");
+                  return 1;
+              }
+            }
+
+            this->vPpriemMessage.remove(i-1); // 02.09.16
+
         }
         QString str(Data);
         QStringList message = str.split(";");
@@ -1361,6 +1376,11 @@ int UdpClient::Here(float *x,float *y,float *z)
               QString str(Data);
               if (str.contains("here",Qt::CaseInsensitive)) break;
               i--;
+              if (i==0) // проверка на случай если мы ничего не нашли
+              {
+                  emit error ("Поетрял данные, получение координат точек");
+                  return 1;
+              }
             }
 
         }
@@ -1394,6 +1414,11 @@ int UdpClient::Here(float *x,float *y,float *z,float *o,float *a,float *t)
               QString str(Data);
               if (str.contains("here",Qt::CaseInsensitive)) break;
               i--;
+              if (i==0) // проверка на случай если мы ничего не нашли
+              {
+                  emit error ("Поетрял данные, получение координат точек");
+                  return 1;
+              }
             }
 
         }
@@ -2476,7 +2501,7 @@ int UdpClient::GoHome()
             //return 1;
         }
     }
-    SleeperThread::sleep(5);
+    SleeperThread::msleep(5);
     float z2;
     float zNeed;
     this->Here(&x,&y,&z2);
