@@ -1120,7 +1120,7 @@ int UdpClient::GetRS10parametr()
 int UdpClient::getPointCoordint(int nP, QString timeoutText, float *x,float *y,float *z,float *o,float *a,float *t)
 {
     QByteArray Data;
-    Data.append("45;"+QString::number(nP)+";");
+    Data.append("45;" + QString::number(nP) + ";");
     if (this->SendCommand(Data,"coordpoint","Ошибка получения координаты точки",2)  )
     {
          return 1;
